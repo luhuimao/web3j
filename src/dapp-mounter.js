@@ -1,15 +1,6 @@
 // @flow
 
-import * as BufferLayout from 'buffer-layout';
 
-import {BusAccount} from './bvm-acct';
-import {PubKey} from './bvm-addr';
-import {NUM_TICKS_PER_SEC} from './timing';
-import {Transaction, PACKET_DATA_SIZE} from './tx-dapp';
-import {launchThenAcknowledgeTx} from './util/launch-then-acknowledge-tx';
-import {dormant} from './util/dormant';
-import type {Connection} from './netutility';
-import {SystemController} from './sys-dapp';
 
 var CNS_PRECOMPILE_ADDRESS = "0x0000000000000000000000000000000000001004";
 var CNS_PRECOMPILE_ABI = {
@@ -24,6 +15,17 @@ var CONSENSUS_PRECOMPILE_ABI = {
     'remove': { "constant": false, "inputs": [{ "name": "nodeID", "type": "string" }], "name": "remove", "outputs": [{ "name": "", "type": "int256" }], "payable": false, "stateMutability": "nonpayable", "type": "function" },
     'addSealer': { "constant": false, "inputs": [{ "name": "nodeID", "type": "string" }], "name": "addSealer", "outputs": [{ "name": "", "type": "int256" }], "payable": false, "stateMutability": "nonpayable", "type": "function" }
 };
+
+import * as BufferLayout from 'buffer-layout';
+
+import {BvmAcct} from './bvm-acct';
+import {BvmAddr} from './bvm-addr';
+import {NUM_TICKS_PER_SEC} from './timing';
+import {Transaction, PACKET_DATA_SIZE} from './tx-dapp';
+import {launchThenAcknowledgeTx} from './launch-then-acknowledge-tx';
+import {dormant} from './dormant';
+import type {Connection} from './netutility';
+import {SystemController} from './sys-dapp';
 
 // const utils = require('../../common/utils');
 // const PrecompiledError = require('../../common/exceptions').PrecompiledError;
@@ -155,17 +157,17 @@ export class ControllerLoader {
    *
    * @param connection The connection to use
    * @param payer System account that pays to load the controller
-   * @param controller BusAccount to load the controller into
+   * @param controller BvmAcct to load the controller into
    * @param controllerId Public key that identifies the loader
    * @param data controller octets
    */
   static async load(
     connection: Connection,
-    payer: BusAccount,
-    controller: BusAccount,
-    controllerId: PubKey,
+    payer: BvmAcct,
+    controller: BvmAcct,
+    controllerId: BvmAddr,
     data: Array<number>,
-  ): Promise<PubKey> {
+  ): Promise<BvmAddr> {
     {
       const transaction = SystemController.createNewAccount(
         payer.pubKey,

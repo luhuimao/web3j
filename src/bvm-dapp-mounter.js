@@ -1,9 +1,6 @@
 // @flow
 
-import {BusAccount} from './bvm-acct';
-import {PubKey} from './bvm-addr';
-import {ControllerLoader} from './dapp-mounter';
-import type {Connection} from './netutility';
+
 
 var CHARSET = 'qpzry9x8gf2tvdw0s3jn54khce6mua7l';
 var GENERATOR = [0x3b6a57b2, 0x26508e6d, 0x1ea119fa, 0x3d4233dd, 0x2a1462b3];
@@ -59,6 +56,11 @@ function encode (hrp, data) {
   return ret;
 }
 
+import {BvmAcct} from './bvm-acct';
+import {BvmAddr} from './bvm-addr';
+import {ControllerLoader} from './dapp-mounter';
+import type {Connection} from './netutility';
+
 function decode (bechString) {
   var p;
   var has_lower = false;
@@ -105,8 +107,8 @@ export class BpfControllerLoader {
   /**
    * Public key that identifies the BpfControllerLoader
    */
-  static get controllerId(): PubKey {
-    return new PubKey('BPFLoader1111111111111111111111111111111111');
+  static get controllerId(): BvmAddr {
+    return new BvmAddr('BPFLoader1111111111111111111111111111111111');
   }
 
   /**
@@ -118,10 +120,10 @@ export class BpfControllerLoader {
    */
   static load(
     connection: Connection,
-    payer: BusAccount,
+    payer: BvmAcct,
     elf: Array<number>,
-  ): Promise<PubKey> {
-    const controller = new BusAccount();
+  ): Promise<BvmAddr> {
+    const controller = new BvmAcct();
     return ControllerLoader.load(connection, payer, controller, BpfControllerLoader.controllerId, elf);
   }
 }

@@ -1,9 +1,5 @@
 // @flow
 
-import BN from 'bn.js';
-import bs58 from 'bs58';
-
-
 const request = require("request");
 
 
@@ -28,6 +24,8 @@ let g_from_account = g_account_list[0];
   /// unlock initial user, which is also miner account
 // web3.personal.unlockAccount(g_from_account, "123", 200 * 60 * 60);
 
+import BN from 'bn.js';
+import bs58 from 'bs58';
 
 async function get_instance(artifact_path){
   let artifact = require(artifact_path);
@@ -137,13 +135,13 @@ function reverse(id) {
 }
 
 /**
- * A public key
+ * A bvm address
  */
-export class PubKey {
+export class BvmAddr {
   _bn: BN;
 
   /**
-   * Create a new PubKey object
+   * Create a new BvmAddr object
    */
   constructor(value: number | string | Buffer | Array<number>) {
     if (typeof value === 'string') {
@@ -160,51 +158,51 @@ export class PubKey {
     }
 
     if (this._bn.byteLength() > 32) {
-      throw new Error(`Invalid public key input`);
+      throw new Error(`Invalid bvm address input`);
     }
   }
 
   /**
-   * Checks if the provided object is a PubKey
+   * Checks if the provided object is a BvmAddr
    */
-  static isPubKey(o: Object): boolean {
-    return o instanceof PubKey;
+  static isBvmAddr(o: Object): boolean {
+    return o instanceof BvmAddr;
   }
 
   /**
-   * Checks if two publicKeys are equal
+   * Checks if two bvm addresses are equal
    */
-  equals(pubKey: PubKey): boolean {
-    return this._bn.eq(pubKey._bn);
+  checkIfEquals(bvmaddr: BvmAddr): boolean {
+    return this._bn.eq(bvmaddr._bn);
   }
 
   /**
-   * Return the base-58 representation of the public key
+   * Return the base-58 representation of the bvm address
    */
-  toBase58(): string {
-    return bs58.encode(this.toBuffer());
+  converseToBase58(): string {
+    return bs58.encode(this.converseToBuffer());
   }
 
   /**
-   * Return the Buffer representation of the public key
+   * Return the Buffer representation of the bvm address
    */
-  toBuffer(): Buffer {
-    const b = this._bn.toArrayLike(Buffer);
-    if (b.length === 32) {
-      return b;
+  converseToBuffer(): Buffer {
+    const bign = this._bn.toArrayLike(Buffer);
+    if (bign.length === 32) {
+      return bign;
     }
 
     const zeroPad = Buffer.alloc(32);
-    b.copy(zeroPad, 32 - b.length);
+    bign.copy(zeroPad, 32 - bign.length);
     return zeroPad;
   }
 
   /**
-   * Returns a string representation of the public key
+   * Returns a string representation of the bvm address
    */
-  toString(): string {
-    return reverse(this.toBase58());
-    // return this.toBase58();
+  converseToString(): string {
+    return reverse(this.converseToBase58());
+    // return this.converseToBase58();
   }
 }
 

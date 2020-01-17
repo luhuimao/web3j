@@ -175,12 +175,12 @@ import BN from 'bn.js';
 import * as BufferLayout from 'buffer-layout';
 
 import * as Layout from './buffer-cntl';
-import {BusAccount} from './bvm-acct';
-import {PubKey} from './bvm-addr';
+import {BvmAcct} from './bvm-acct';
+import {BvmAddr} from './bvm-addr';
 import {SystemController} from './sys-dapp';
 import {Transaction, TxOperation} from './tx-dapp';
 import type {TxnSignature} from './tx-dapp';
-import {launchThenAcknowledgeTx} from './util/launch-then-acknowledge-tx';
+import {launchThenAcknowledgeTx} from './launch-then-acknowledge-tx';
 import type {Connection} from './netutility';
 
 /**
@@ -355,12 +355,12 @@ type AssetAccountDetail = {|
   /**
    * The kind of asset this account holds
    */
-  publickeyOfAsset: PubKey,
+  publickeyOfAsset: BvmAddr,
 
   /**
    * Owner of this account
    */
-  publickeyOfOwner: PubKey,
+  publickeyOfOwner: BvmAddr,
 
   /**
    * Amount of assets this account holds
@@ -374,7 +374,7 @@ type AssetAccountDetail = {|
    * If `source` is not null, the `amount` of assets in this account represent
    * an allowance of assets that may be transferred from the source account
    */
-  publickeyOfSourceAccount: null | PubKey,
+  publickeyOfSourceAccount: null | BvmAddr,
 
   /**
    * New amount of assets this delegate account was authorized to spend
@@ -395,12 +395,12 @@ const TokenAccountDetailLayout = BufferLayout.struct([
   Layout.uint64('originalAmountOfAsset'),
 ]);
 
-type AssetAndPubKey = [Token, PubKey]; // This type exists to workaround an esdoc parse error
+type AssetAndPubKey = [Token, BvmAddr]; // This type exists to workaround an esdoc parse error
 
 /**
  * The built-in asset controller
  */
-export const SYSTEM_TOKEN_CONTROLLER_ID = new PubKey(
+export const SYSTEM_TOKEN_CONTROLLER_ID = new BvmAddr(
   'Token11111111111111111111111111111111111111',
   // 'BRC42TKNAAA60000000000000006',
 );
@@ -417,12 +417,12 @@ export class Asset {
   /**
    * The public key identifying this asset
    */
-  assetId: PubKey;
+  assetId: BvmAddr;
 
   /**
    * Controller Identifier for the Token controller
    */
-  controllerId: PubKey;
+  controllerId: BvmAddr;
 
   /**
    * Create a Token object attached to the specific asset
@@ -433,8 +433,8 @@ export class Asset {
    */
   constructor(
     connection: Connection,
-    assetId: PubKey,
-    controllerId: PubKey = SYSTEM_TOKEN_CONTROLLER_ID,
+    assetId: BvmAddr,
+    controllerId: BvmAddr = SYSTEM_TOKEN_CONTROLLER_ID,
   ) {
     Object.assign(this, {connection, assetId, controllerId});
   }
@@ -443,24 +443,24 @@ export class Asset {
    * Create a new Asset
    *
    * @param connection The connection to use
-   * @param ownerOfAsset User account that will own the returned Token BusAccount
+   * @param ownerOfAsset User account that will own the returned Asset BvmAcct
    * @param totalSupply Total supply of the new asset
    * @param assetName Descriptive name of this asset
    * @param assetSymbol Symbol for this asset
    * @param assetDecimals Location of the decimal place
    * @param controllerId Optional asset controllerId, uses the system controllerId by default
-   * @return Token object for the newly minted asset, Public key of the Token BusAccount holding the total supply of new assets
+   * @return Token object for the newly minted asset, Public key of the Asset BvmAcct holding the total supply of new assets
    */
   static async createNewAsset(
     connection: Connection,
-    ownerOfAsset: BusAccount,
+    ownerOfAsset: BvmAcct,
     totalSupply: AssetCount,
     assetName: string,
     assetSymbol: string,
     assetDecimals: number,
-    controllerId: PubKey = SYSTEM_TOKEN_CONTROLLER_ID,
+    controllerId: BvmAddr = SYSTEM_TOKEN_CONTROLLER_ID,
   ): Promise<AssetAndPubKey> {
-    const assetAccount = new BusAccount();
+    const assetAccount = new BvmAcct();
     const asset = new Asset(connection, assetAccount.pubKey, controllerId);
     const publickeyOfStoreAssetAccount = await asset.createNewAssetAccount(ownerOfAsset, null);
     let transaction;
@@ -530,10 +530,10 @@ export class Asset {
    * @return Public key of the new empty asset account
    */
   async createNewAssetAccount(
-    ownerAccount: BusAccount,
-    bvmAddrOfSourceAccount: null | PubKey = null,
-  ): Promise<PubKey> {
-    const assetAccount = new BusAccount();
+    ownerAccount: BvmAcct,
+    bvmAddrOfSourceAccount: null | BvmAddr = null,
+  ): Promise<BvmAddr> {
+    const assetAccount = new BvmAcct();
     let transaction;
     const dataLayout = BufferLayout.struct([BufferLayout.u32('instruction')]);
 
@@ -582,7 +582,7 @@ export class Asset {
    */
   async fetchAssetDetail(): Promise<AssetDetail> {
     const fetchAccountDetail = await this.connection.fetchAccountDetail(this.assetId);
-    if (!fetchAccountDetail.owner.equals(this.controllerId)) {
+    if (!fetchAccountDetail.owner.checkIfEquals(this.controllerId)) {
       throw new Error(
         `Invalid asset owner: ${JSON.stringify(fetchAccountDetail.owner)}`,
       );
@@ -603,9 +603,9 @@ export class Asset {
    *
    * @param account Public key of the asset account
    */
-  async fetchAccountDetail(account: PubKey): Promise<AssetAccountDetail> {
+  async fetchAccountDetail(account: BvmAddr): Promise<AssetAccountDetail> {
     const fetchAccountDetail = await this.connection.fetchAccountDetail(account);
-    if (!fetchAccountDetail.owner.equals(this.controllerId)) {
+    if (!fetchAccountDetail.owner.checkIfEquals(this.controllerId)) {
       throw new Error(`Invalid asset account owner`);
     }
 
@@ -615,20 +615,20 @@ export class Asset {
     }
     const tokenAccountInfo = TokenAccountDetailLayout.decode(data, 1);
 
-    tokenAccountInfo.publickeyOfAsset = new PubKey(tokenAccountInfo.publickeyOfAsset);
-    tokenAccountInfo.publickeyOfOwner = new PubKey(tokenAccountInfo.publickeyOfOwner);
+    tokenAccountInfo.publickeyOfAsset = new BvmAddr(tokenAccountInfo.publickeyOfAsset);
+    tokenAccountInfo.publickeyOfOwner = new BvmAddr(tokenAccountInfo.publickeyOfOwner);
     tokenAccountInfo.amountOfAsset = AssetCount.createFromBuffer(tokenAccountInfo.amountOfAsset);
     if (tokenAccountInfo.sourceOption === 0) {
       tokenAccountInfo.publickeyOfSourceAccount = null;
       tokenAccountInfo.originalAmountOfAsset = new AssetCount();
     } else {
-      tokenAccountInfo.publickeyOfSourceAccount = new PubKey(tokenAccountInfo.publickeyOfSourceAccount);
+      tokenAccountInfo.publickeyOfSourceAccount = new BvmAddr(tokenAccountInfo.publickeyOfSourceAccount);
       tokenAccountInfo.originalAmountOfAsset = AssetCount.createFromBuffer(
         tokenAccountInfo.originalAmountOfAsset,
       );
     }
 
-    if (!tokenAccountInfo.publickeyOfAsset.equals(this.assetId)) {
+    if (!tokenAccountInfo.publickeyOfAsset.checkIfEquals(this.assetId)) {
       throw new Error(
         `Invalid asset account bvmaddr: ${JSON.stringify(
           tokenAccountInfo.publickeyOfAsset,
@@ -647,9 +647,9 @@ export class Asset {
    * @param amount Number of assets to transfer
    */
   async transferAsset(
-    owner: BusAccount,
-    source: PubKey,
-    destination: PubKey,
+    owner: BvmAcct,
+    source: BvmAddr,
+    destination: BvmAddr,
     amount: number | AssetCount,
   ): Promise<?TxnSignature> {
     return await launchThenAcknowledgeTx(
@@ -675,9 +675,9 @@ export class Asset {
    * @param amountAsset Maximum number of assets the delegate may transfer
    */
   async authorize(
-    ownerAccount: BusAccount,
-    publickeyOfAssetAccount: PubKey,
-    publickeyOfDelegateAccount: PubKey,
+    ownerAccount: BvmAcct,
+    publickeyOfAssetAccount: BvmAddr,
+    publickeyOfDelegateAccount: BvmAddr,
     amountAsset: number | AssetCount,
   ): Promise<void> {
     await launchThenAcknowledgeTx(
@@ -697,9 +697,9 @@ export class Asset {
    * @param publickeyOfDelegateAccount Token account to revoke authorization from
    */
   unauthorize(
-    ownerAccount: BusAccount,
-    publickeyOfAssetAccount: PubKey,
-    publickeyOfDelegateAccount: PubKey,
+    ownerAccount: BvmAcct,
+    publickeyOfAssetAccount: BvmAddr,
+    publickeyOfDelegateAccount: BvmAddr,
   ): Promise<void> {
     return this.authorize(ownerAccount, publickeyOfAssetAccount, publickeyOfDelegateAccount, 0);
   }
@@ -712,9 +712,9 @@ export class Asset {
    * @param publickeyOfNewOwner New owner of the asset account
    */
   async setNewOwnerToAssetAccount(
-    ownerAccount: BusAccount,
-    publickeyOfAssetAccount: PubKey,
-    publickeyOfNewOwner: PubKey,
+    ownerAccount: BvmAcct,
+    publickeyOfAssetAccount: BvmAddr,
+    publickeyOfNewOwner: BvmAddr,
   ): Promise<void> {
     await launchThenAcknowledgeTx(
       this.connection,
@@ -734,14 +734,14 @@ export class Asset {
    * @param amount Number of assets to transfer
    */
   async transferOperation(
-    publickeyOfOwnerSourceAccount: PubKey,
-    publickeyOfSourceAccount: PubKey,
-    publickeyOfDestinationAccount: PubKey,
+    publickeyOfOwnerSourceAccount: BvmAddr,
+    publickeyOfSourceAccount: BvmAddr,
+    publickeyOfDestinationAccount: BvmAddr,
     amountAsset: number | AssetCount,
   ): Promise<TxOperation> {
     const fetchAccountDetail = await this.fetchAccountDetail(publickeyOfSourceAccount);
-    if (!publickeyOfOwnerSourceAccount.equals(fetchAccountDetail.publickeyOfOwner)) {
-      throw new Error('BusAccount owner mismatch');
+    if (!publickeyOfOwnerSourceAccount.checkIfEquals(fetchAccountDetail.publickeyOfOwner)) {
+      throw new Error('BvmAcct owner mismatch');
     }
 
     const dataLayout = BufferLayout.struct([
@@ -786,9 +786,9 @@ export class Asset {
    * @param amount Maximum number of assets the delegate may transfer
    */
   approveOperation(
-    owner: PubKey,
-    account: PubKey,
-    delegate: PubKey,
+    owner: BvmAddr,
+    account: BvmAddr,
+    delegate: BvmAddr,
     amount: number | AssetCount,
   ): TxOperation {
     const dataLayout = BufferLayout.struct([
@@ -824,9 +824,9 @@ export class Asset {
    * @param delegate Token account authorized to perform a transfer assets from the source account
    */
   revokeOperation(
-    owner: PubKey,
-    account: PubKey,
-    delegate: PubKey,
+    owner: BvmAddr,
+    account: BvmAddr,
+    delegate: BvmAddr,
   ): TxOperation {
     return this.approveOperation(owner, account, delegate, 0);
   }
@@ -839,9 +839,9 @@ export class Asset {
    * @param newOwner New owner of the asset account
    */
   setOwnerOperation(
-    owner: PubKey,
-    account: PubKey,
-    newOwner: PubKey,
+    owner: BvmAddr,
+    account: BvmAddr,
+    newOwner: BvmAddr,
   ): TxOperation {
     const dataLayout = BufferLayout.struct([BufferLayout.u32('instruction')]);
 

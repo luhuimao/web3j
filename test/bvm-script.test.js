@@ -1,12 +1,12 @@
 // @flow
 
-import {BusAccount} from '../src/bvm-acct';
+import {BvmAcct} from '../src/bvm-acct';
 import {BudgetController} from '../src/bvm-script';
 
 test('pay', () => {
-  const from = new BusAccount();
-  const controller = new BusAccount();
-  const to = new BusAccount();
+  const from = new BvmAcct();
+  const controller = new BvmAcct();
+  const to = new BvmAcct();
   let transaction;
 
   transaction = BudgetController.pay(
@@ -56,9 +56,9 @@ test('pay', () => {
 });
 
 test('apply', () => {
-  const from = new BusAccount();
-  const controller = new BusAccount();
-  const to = new BusAccount();
+  const from = new BvmAcct();
+  const controller = new BvmAcct();
+  const to = new BvmAcct();
   let transaction;
 
   transaction = BudgetController.sealWithDatetime(

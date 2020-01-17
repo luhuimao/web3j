@@ -1,15 +1,15 @@
 // @flow
 import nacl from 'tweetnacl';
 
-import {BusAccount} from '../src/bvm-acct';
-import {PubKey} from '../src/bvm-addr';
+import {BvmAcct} from '../src/bvm-acct';
+import {BvmAddr} from '../src/bvm-addr';
 import {Transaction} from '../src/tx-dapp';
 import {SystemController} from '../src/sys-dapp';
 
 test('signPartial', () => {
-  const account1 = new BusAccount();
-  const account2 = new BusAccount();
-  const recentPackagehash = account1.pubKey.toBase58(); // Fake recentPackagehash
+  const account1 = new BvmAcct();
+  const account2 = new BvmAcct();
+  const recentPackagehash = account1.pubKey.converseToBase58(); // Fake recentPackagehash
   const transfer = SystemController.transfer(
     account1.pubKey,
     account2.pubKey,
@@ -28,9 +28,9 @@ test('signPartial', () => {
 });
 
 test('transfer signatures', () => {
-  const account1 = new BusAccount();
-  const account2 = new BusAccount();
-  const recentPackagehash = account1.pubKey.toBase58(); // Fake recentPackagehash
+  const account1 = new BvmAcct();
+  const account2 = new BvmAcct();
+  const recentPackagehash = account1.pubKey.converseToBase58(); // Fake recentPackagehash
   const transfer1 = SystemController.transfer(
     account1.pubKey,
     account2.pubKey,
@@ -57,9 +57,9 @@ test('transfer signatures', () => {
 });
 
 test('dedup signatures', () => {
-  const account1 = new BusAccount();
-  const account2 = new BusAccount();
-  const recentPackagehash = account1.pubKey.toBase58(); // Fake recentPackagehash
+  const account1 = new BvmAcct();
+  const account2 = new BvmAcct();
+  const recentPackagehash = account1.pubKey.converseToBase58(); // Fake recentPackagehash
   const transfer1 = SystemController.transfer(
     account1.pubKey,
     account2.pubKey,
@@ -82,9 +82,9 @@ test('parse wire format and serialize', () => {
   const keypair = nacl.sign.keyPair.fromSeed(
     Uint8Array.from(Array(32).fill(8)),
   );
-  const sender = new BusAccount(Buffer.from(keypair.secretKey)); // Arbitrary known account
+  const sender = new BvmAcct(Buffer.from(keypair.secretKey)); // Arbitrary known account
   const recentPackagehash = 'EETubP5AKHgjPAhzPAFcb8BAY1hMH639CWCFTqi3hq1k'; // Arbitrary known recentPackagehash
-  const recipient = new PubKey(
+  const recipient = new BvmAddr(
     'J3dxNj7nDRRqRRXuEMynDG57DkZK4jYRuv3Garmb1i99',
   ); // Arbitrary known public key
   const transfer = SystemController.transfer(sender.pubKey, recipient, 49);

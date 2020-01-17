@@ -1,13 +1,5 @@
 // @flow
 
-import * as BufferLayout from 'buffer-layout';
-
-import {Transaction} from './tx-dapp';
-import {PubKey} from './bvm-addr';
-import {SystemController} from './sys-dapp';
-import JS from './js';
-import PreCondition from './preconditions';
-
 function uintOrNaN (v) {
     if (typeof v !== 'number') return NaN
     if (!isFinite(v)) return NaN
@@ -82,6 +74,14 @@ function filterNumberOnly(input) {
     return (input != null ? input.replace(/[^0-9.]/gi, '') : input);
 }
 
+import * as BufferLayout from 'buffer-layout';
+
+import {Transaction} from './tx-dapp';
+import {BvmAddr} from './bvm-addr';
+import {SystemController} from './sys-dapp';
+import JS from './js';
+import PreCondition from './preconditions';
+
 function toDisplayAmount(number) {
     if (typeof number !== 'number') {
         number = Number(number);
@@ -102,11 +102,11 @@ function toDisplayAmount(number) {
  * 
  * @typedef {Object} SignatureCond
  * @property {string} type string type for 'signature'
- * @property {PubKey} from Public key for whom signed the transaction
+ * @property {BvmAddr} from Public key for whom signed the transaction
  */
 export type SignatureCond = {
   type: 'signature',
-  from: PubKey,
+  from: BvmAddr,
 };
 
 /**
@@ -114,12 +114,12 @@ export type SignatureCond = {
 
  * @typedef {Object} TimestampCond
  * @property {string} type string type 'timestamp'
- * @property {PubKey} from Public key from which `sealWithDatetime()` will be accepted from
+ * @property {BvmAddr} from Public key from which `sealWithDatetime()` will be accepted from
  * @property {Date} when The timestamp that will be trigger
  */
 export type TimestampCond = {
   type: 'timestamp',
-  from: PubKey,
+  from: BvmAddr,
   when: Date,
 };
 
@@ -128,11 +128,11 @@ export type TimestampCond = {
  * 
  * @typedef {Object} Payment
  * @property {number} amount Amount of difs
- * @property {PubKey} to Public key of the payee
+ * @property {BvmAddr} to Public key of the payee
  */
 export type Payment = {
   amount: number,
-  to: PubKey,
+  to: BvmAddr,
 };
 
 /**
@@ -148,7 +148,7 @@ export type BudgetCond = SignatureCond | TimestampCond;
  * @private
  */
 function serializePayment(payment: Payment): Buffer {
-  const toData = payment.to.toBuffer();
+  const toData = payment.to.converseToBuffer();
   const data = Buffer.alloc(8 + toData.length);
   data.writeUInt32LE(payment.amount, 0);
   toData.copy(data, 8);
@@ -200,7 +200,7 @@ function serializeCond(condition: BudgetCond) {
   switch (condition.type) {
     case 'timestamp': {
       const date = serializeTime(condition.when);
-      const from = condition.from.toBuffer();
+      const from = condition.from.converseToBuffer();
 
       const data = Buffer.alloc(4 + date.length + from.length);
       data.writeUInt32LE(0, 0); // Condition enum = Timestamp
@@ -209,7 +209,7 @@ function serializeCond(condition: BudgetCond) {
       return data;
     }
     case 'signature': {
-      const from = condition.from.toBuffer();
+      const from = condition.from.converseToBuffer();
       const data = Buffer.alloc(4 + from.length);
       data.writeUInt32LE(1, 0); // Condition enum = Signature
       from.copy(data, 4);
@@ -227,8 +227,8 @@ export class BudgetController {
   /**
    * Public key that identifies the Budget controller
    */
-  static get controllerId(): PubKey {
-    return new PubKey('Budget1111111111111111111111111111111111111');
+  static get controllerId(): BvmAddr {
+    return new BvmAddr('Budget1111111111111111111111111111111111111');
   }
 
   /**
@@ -241,7 +241,7 @@ export class BudgetController {
   /**
    * Creates a timestamp condition
    */
-  static datetimeCond(from: PubKey, when: Date): TimestampCond {
+  static datetimeCond(from: BvmAddr, when: Date): TimestampCond {
     return {
       type: 'timestamp',
       from,
@@ -252,7 +252,7 @@ export class BudgetController {
   /**
    * Creates a signature condition
    */
-  static signatureCond(from: PubKey): SignatureCond {
+  static signatureCond(from: BvmAddr): SignatureCond {
     return {
       type: 'signature',
       from,
@@ -263,9 +263,9 @@ export class BudgetController {
    * Generates a transaction that transfers difs once any of the conditions are met
    */
   static pay(
-    from: PubKey,
-    controller: PubKey,
-    to: PubKey,
+    from: BvmAddr,
+    controller: BvmAddr,
+    to: BvmAddr,
     amount: number,
     ...conditions: Array<BudgetCond>
   ): Transaction {
@@ -386,9 +386,9 @@ export class BudgetController {
    * Generates a transaction that transfers difs once both conditions are met
    */
   static payOnAll(
-    from: PubKey,
-    controller: PubKey,
-    to: PubKey,
+    from: BvmAddr,
+    controller: BvmAddr,
+    to: BvmAddr,
     amount: number,
     condition1: BudgetCond,
     condition2: BudgetCond,
@@ -437,9 +437,9 @@ export class BudgetController {
    * pending payment to proceed.
    */
   static sealWithDatetime(
-    from: PubKey,
-    controller: PubKey,
-    to: PubKey,
+    from: BvmAddr,
+    controller: BvmAddr,
+    to: BvmAddr,
     when: Date,
   ): Transaction {
     const whenData = serializeTime(when);
@@ -464,9 +464,9 @@ export class BudgetController {
    * pending payment to proceed.
    */
   static sealWithSignature(
-    from: PubKey,
-    controller: PubKey,
-    to: PubKey,
+    from: BvmAddr,
+    controller: BvmAddr,
+    to: BvmAddr,
   ): Transaction {
     const dataLayout = BufferLayout.struct([BufferLayout.u32('instruction')]);
 

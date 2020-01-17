@@ -1,9 +1,9 @@
 // @flow
-import {BusAccount, Connection, SystemController} from '../src';
+import {BvmAcct, Connection, SystemController} from '../src';
 import {mockRpc, mockRpcEnabled} from './__mocks__/node-fetch';
 import {mockGetRecentBlockhash} from './mockrpc/get-recent-blockhash';
 import {url} from './url';
-import {dormant} from '../src/util/dormant';
+import {dormant} from '../src/dormant';
 
 if (!mockRpcEnabled) {
   // The default of 5 seconds is too slow for live testing sometimes
@@ -11,16 +11,16 @@ if (!mockRpcEnabled) {
 }
 
 test('transaction-payer', async () => {
-  const accountPayer = new BusAccount();
-  const accountFrom = new BusAccount();
-  const accountTo = new BusAccount();
+  const accountPayer = new BvmAcct();
+  const accountFrom = new BvmAcct();
+  const accountTo = new BvmAcct();
   const connection = new Connection(url);
 
   mockRpc.push([
     url,
     {
       method: 'requestDif',
-      params: [accountPayer.pubKey.toBase58(), 100],
+      params: [accountPayer.pubKey.converseToBase58(), 100],
     },
     {
       error: null,
@@ -34,7 +34,7 @@ test('transaction-payer', async () => {
     url,
     {
       method: 'requestDif',
-      params: [accountFrom.pubKey.toBase58(), 12],
+      params: [accountFrom.pubKey.converseToBase58(), 12],
     },
     {
       error: null,
@@ -48,7 +48,7 @@ test('transaction-payer', async () => {
     url,
     {
       method: 'requestDif',
-      params: [accountTo.pubKey.toBase58(), 21],
+      params: [accountTo.pubKey.converseToBase58(), 21],
     },
     {
       error: null,
@@ -129,7 +129,7 @@ test('transaction-payer', async () => {
     url,
     {
       method: 'getDif',
-      params: [accountPayer.pubKey.toBase58()],
+      params: [accountPayer.pubKey.converseToBase58()],
     },
     {
       error: null,
@@ -148,7 +148,7 @@ test('transaction-payer', async () => {
     url,
     {
       method: 'getDif',
-      params: [accountFrom.pubKey.toBase58()],
+      params: [accountFrom.pubKey.converseToBase58()],
     },
     {
       error: null,

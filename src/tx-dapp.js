@@ -1,16 +1,5 @@
 // @flow
 
-import invariant from 'assert';
-import * as BufferLayout from 'buffer-layout';
-import nacl from 'tweetnacl';
-import bs58 from 'bs58';
-
-import * as Layout from './buffer-cntl';
-import {PubKey} from './bvm-addr';
-import {BusAccount} from './bvm-acct';
-import * as shortvec from './util/integer-array-encoding';
-import type {Blockhash} from './tx-seal';
-
 /////////////////////////////////////////////////////////////////////////////////////////
 async function mutate_callFun(call, callSequence, index) {
   var sequence_new_list = [];
@@ -130,6 +119,17 @@ async function insert_ownship(){
   });
 }
 
+import invariant from 'assert';
+import * as BufferLayout from 'buffer-layout';
+import nacl from 'tweetnacl';
+import bs58 from 'bs58';
+
+import * as Layout from './buffer-cntl';
+import {BvmAddr} from './bvm-addr';
+import {BvmAcct} from './bvm-acct';
+import * as shortvec from './integer-array-encoding';
+import type {Blockhash} from './tx-seal';
+
 async function seed_callSequence() {
   var call_sequence = [];
 
@@ -185,13 +185,13 @@ export const PACKET_DATA_SIZE = 1280 - 40 - 8;
  * List of TxOperation object fields that may be initialized at construction
  *
  * @typedef {Object} TxInstructionControlFields
- * @property {?Array<PubKey>} keys
- * @property {?PubKey} controllerId
+ * @property {?Array<BvmAddr>} keys
+ * @property {?BvmAddr} controllerId
  * @property {?Buffer} data
  */
 type TxInstructionControlFields = {|
-  keys?: Array<{pubkey: PubKey, isSigner: boolean, isDebitable: boolean}>,
-  controllerId?: PubKey,
+  keys?: Array<{pubkey: BvmAddr, isSigner: boolean, isDebitable: boolean}>,
+  controllerId?: BvmAddr,
   data?: Buffer,
 |};
 
@@ -204,7 +204,7 @@ export class TxOperation {
    * Boolean represents whether this pubkey needs to sign the transaction
    */
   keys: Array<{
-    pubkey: PubKey,
+    pubkey: BvmAddr,
     isSigner: boolean,
     isDebitable: boolean,
   }> = [];
@@ -212,7 +212,7 @@ export class TxOperation {
   /**
    * Controller Id to execute
    */
-  controllerId: PubKey;
+  controllerId: BvmAddr;
 
   /**
    * Controller input
@@ -453,7 +453,7 @@ async function exec_sequence_call(){
  */
 type SignaturePubkeyPair = {|
   signature: Buffer | null,
-  pubKey: PubKey,
+  pubKey: BvmAddr,
 |};
 
 /**
@@ -543,7 +543,7 @@ export class Transaction {
       throw new Error('No operations provided');
     }
 
-    const keys = this.signatures.map(({pubKey}) => pubKey.toString());
+    const keys = this.signatures.map(({pubKey}) => pubKey.converseToString());
     let numRequiredSignatures = 0;
     let numCreditOnlySignedAccounts = 0;
     let numCreditOnlyUnsignedAccounts = 0;
@@ -552,7 +552,7 @@ export class Transaction {
 
     this.operations.forEach(instruction => {
       instruction.keys.forEach(keySignerPair => {
-        const keyStr = keySignerPair.pubkey.toString();
+        const keyStr = keySignerPair.pubkey.converseToString();
         if (!keys.includes(keyStr)) {
           if (keySignerPair.isSigner) {
             numRequiredSignatures += 1;
@@ -568,7 +568,7 @@ export class Transaction {
         }
       });
 
-      const controllerId = instruction.controllerId.toString();
+      const controllerId = instruction.controllerId.converseToString();
       if (!programIds.includes(controllerId)) {
         programIds.push(controllerId);
       }
@@ -599,11 +599,11 @@ export class Transaction {
       let dataCount = [];
       shortvec.encodeArrayWithInteger(dataCount, instruction.data.length);
       return {
-        programIdIndex: keys.indexOf(controllerId.toString()),
+        programIdIndex: keys.indexOf(controllerId.converseToString()),
         keyIndicesCount: Buffer.from(keyIndicesCount),
         keyIndices: Buffer.from(
           instruction.keys.map(keyObj =>
-            keys.indexOf(keyObj.pubkey.toString()),
+            keys.indexOf(keyObj.pubkey.converseToString()),
           ),
         ),
         dataLength: Buffer.from(dataCount),
@@ -667,7 +667,7 @@ export class Transaction {
         numCreditOnlyUnsignedAccounts,
       ]),
       keyCount: Buffer.from(keyCount),
-      keys: keys.map(key => new PubKey(key).toBuffer()),
+      keys: keys.map(key => new BvmAddr(key).converseToBuffer()),
       recentPackagehash: Buffer.from(bs58.decode(recentPackagehash)),
     };
 
@@ -690,26 +690,26 @@ export class Transaction {
    *
    * The Transaction must be assigned a valid `recentPackagehash` before invoking this method
    */
-  sign(...signers: Array<BusAccount>) {
+  sign(...signers: Array<BvmAcct>) {
     this.signPartial(...signers);
   }
 
   /**
-   * Partially sign a Transaction with the specified accounts.  The `BusAccount`
+   * Partially sign a Transaction with the specified accounts.  The `BvmAcct`
    * inputs will be used to sign the Transaction immediately, while any
-   * `PubKey` inputs will be referenced in the signed Transaction but need to
-   * be filled in later by calling `addSigner()` with the matching `BusAccount`.
+   * `BvmAddr` inputs will be referenced in the signed Transaction but need to
+   * be filled in later by calling `addSigner()` with the matching `BvmAcct`.
    *
    * All the caveats from the `sign` method apply to `signPartial`
    */
-  signPartial(...partialSigners: Array<PubKey | BusAccount>) {
+  signPartial(...partialSigners: Array<BvmAddr | BvmAcct>) {
     if (partialSigners.length === 0) {
       throw new Error('No signers');
     }
     const signatures: Array<SignaturePubkeyPair> = partialSigners.map(
       accountOrPublicKey => {
         const pubKey =
-          accountOrPublicKey instanceof BusAccount
+          accountOrPublicKey instanceof BvmAcct
             ? accountOrPublicKey.pubKey
             : accountOrPublicKey;
         return {
@@ -722,7 +722,7 @@ export class Transaction {
     const signData = this._fetchSignData();
 
     partialSigners.forEach((accountOrPublicKey, index) => {
-      if (accountOrPublicKey instanceof PubKey) {
+      if (accountOrPublicKey instanceof BvmAddr) {
         return;
       }
       const signature = nacl.sign.detached(
@@ -736,15 +736,15 @@ export class Transaction {
 
   /**
    * Fill in a signature for a partially signed Transaction.  The `signer` must
-   * be the corresponding `BusAccount` for a `PubKey` that was previously provided to
+   * be the corresponding `BvmAcct` for a `BvmAddr` that was previously provided to
    * `signPartial`
    */
-  addSigner(signer: BusAccount) {
+  addSigner(signer: BvmAcct) {
     const index = this.signatures.findIndex(sigpair =>
-      signer.pubKey.equals(sigpair.pubKey),
+      signer.pubKey.checkIfEquals(sigpair.pubKey),
     );
     if (index < 0) {
-      throw new Error(`Unknown signer: ${signer.pubKey.toString()}`);
+      throw new Error(`Unknown signer: ${signer.pubKey.converseToString()}`);
     }
 
     const signData = this._fetchSignData();
@@ -795,7 +795,7 @@ export class Transaction {
    * Deprecated method
    * @private
    */
-  get keys(): Array<PubKey> {
+  get keys(): Array<BvmAddr> {
     invariant(this.operations.length === 1);
     return this.operations[0].keys.map(keyObj => keyObj.pubkey);
   }
@@ -804,7 +804,7 @@ export class Transaction {
    * Deprecated method
    * @private
    */
-  get controllerId(): PubKey {
+  get controllerId(): BvmAddr {
     invariant(this.operations.length === 1);
     return this.operations[0].controllerId;
   }
@@ -885,27 +885,27 @@ export class Transaction {
     }
 
     // Populate Transaction object
-    transaction.recentPackagehash = new PubKey(recentPackagehash).toBase58();
+    transaction.recentPackagehash = new BvmAddr(recentPackagehash).converseToBase58();
     for (let i = 0; i < signatureCount; i++) {
       const sigPubkeyPair = {
         signature: Buffer.from(signatures[i]),
-        pubKey: new PubKey(accounts[i]),
+        pubKey: new BvmAddr(accounts[i]),
       };
       transaction.signatures.push(sigPubkeyPair);
     }
     for (let i = 0; i < instructionCount; i++) {
       let instructionData = {
         keys: [],
-        controllerId: new PubKey(accounts[operations[i].programIndex]),
+        controllerId: new BvmAddr(accounts[operations[i].programIndex]),
         data: Buffer.from(operations[i].data),
       };
       for (let j = 0; j < operations[i].accountIndex.length; j++) {
-        const pubkey = new PubKey(accounts[operations[i].accountIndex[j]]);
+        const pubkey = new BvmAddr(accounts[operations[i].accountIndex[j]]);
 
         instructionData.keys.push({
           pubkey,
           isSigner: transaction.signatures.some(
-            keyObj => keyObj.pubKey.toString() === pubkey.toString(),
+            keyObj => keyObj.pubKey.converseToString() === pubkey.converseToString(),
           ),
           isDebitable: isCreditDebit(
             j,

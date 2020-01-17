@@ -1,9 +1,5 @@
 // @flow
 
-import {BusAccount} from './bvm-acct';
-import {PubKey} from './bvm-addr';
-import {ControllerLoader} from './dapp-mounter';
-import type {Connection} from './netutility';
 
 ////////////////////////////////////////////////////////////////////////////////////
 // const request = require("request");
@@ -126,6 +122,11 @@ function unlockAccount(){
   });
 }
 
+import {BvmAcct} from './bvm-acct';
+import {BvmAddr} from './bvm-addr';
+import {ControllerLoader} from './dapp-mounter';
+import type {Connection} from './netutility';
+
 function setProvider(httpRpcAddr){
   Provider = new Web3.providers.HttpProvider(httpRpcAddr);
   web3 = new Web3(new Web3.providers.HttpProvider(httpRpcAddr));
@@ -148,8 +149,8 @@ export class NativeControllerLoader {
   /**
    * Public key that identifies the NativeControllerLoader
    */
-  static get controllerId(): PubKey {
-    return new PubKey('NativeLoader1111111111111111111111111111111');
+  static get controllerId(): BvmAddr {
+    return new BvmAddr('NativeLoader1111111111111111111111111111111');
   }
 
   /**
@@ -161,11 +162,11 @@ export class NativeControllerLoader {
    */
   static load(
     connection: Connection,
-    payer: BusAccount,
+    payer: BvmAcct,
     controllerName: string,
-  ): Promise<PubKey> {
+  ): Promise<BvmAddr> {
     const bytes = [...Buffer.from(controllerName)];
-    const controller = new BusAccount();
+    const controller = new BvmAcct();
     return ControllerLoader.load(
       connection,
       payer,

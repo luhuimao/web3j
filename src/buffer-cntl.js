@@ -1,6 +1,5 @@
 // @flow
 
-import * as BufferLayout from 'buffer-layout';
 
 /// the last call
 var lastCall = new Map();
@@ -29,6 +28,8 @@ var reset_num = 0;
 var reset_index = 0;
 
 var fuzzing_finish = false;
+
+import * as BufferLayout from 'buffer-layout';
 
 /// the mutation for gas neighbor
 var gas_neighbor = [];
@@ -67,7 +68,7 @@ gas_neighbor.push('100.0');
 gas_neighbor.push('1000.0');
 
 /**
- * Layout for a public key
+ * Layout for a bvm address
  */
 export const pubKey = (property: string = 'pubKey'): Object => {
   return BufferLayout.blob(32, property);

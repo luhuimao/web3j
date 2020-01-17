@@ -1,10 +1,10 @@
 // @flow
-import {BusAccount} from '../src/bvm-acct';
-import {PubKey} from '../src/bvm-addr';
+import {BvmAcct} from '../src/bvm-acct';
+import {BvmAddr} from '../src/bvm-addr';
 
 test('generate new account', () => {
-  const account = new BusAccount();
-  expect(PubKey.isPubKey(account.pubKey)).toBeTruthy();
+  const account = new BvmAcct();
+  expect(BvmAddr.isBvmAddr(account.pubKey)).toBeTruthy();
   expect(account.privateKey).toHaveLength(64);
 });
 
@@ -75,8 +75,8 @@ test('account from secret key', () => {
     153,
     34,
   ]);
-  const account = new BusAccount(privateKey);
-  expect(account.pubKey.toBase58()).toBe(
+  const account = new BvmAcct(privateKey);
+  expect(account.pubKey.converseToBase58()).toBe(
     '2q7pyhPwAwZ3QMfZrnAbDhnh9mDUqycszcpf86VgQxhF',
   );
 });

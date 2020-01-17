@@ -1,9 +1,9 @@
 // @flow
 
-import {Connection} from '../netutility';
+import {Connection} from './netutility';
 import {dormant} from './dormant';
-import type {TxnSignature} from '../tx-dapp';
-import {DEFAULT_TICKS_PER_SLOT, NUM_TICKS_PER_SEC} from '../timing';
+import type {TxnSignature} from './tx-dapp';
+import {DEFAULT_TICKS_PER_SLOT, NUM_TICKS_PER_SEC} from './timing';
 
 
 const fs = require('fs');

@@ -1,8 +1,5 @@
 // @flow
 
-import * as BufferLayout from 'buffer-layout';
-
-
 //////////////////////////////////////////////////////////////////////////////
 /// json file
 var target_artifact;
@@ -76,6 +73,10 @@ var reset_num = 0;
 var reset_index = 0;
 
 var fuzzing_finish = false;
+
+
+import * as BufferLayout from 'buffer-layout';
+
 
 /// the mutation for gas neighbor
 var gas_neighbor = [];

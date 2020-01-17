@@ -1,4 +1,4 @@
-import RpcCall from '../rpc-call';
+import RpcCall from './rpc-call';
 
 var util = require('util');
 var _ = require('underscore');

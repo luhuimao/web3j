@@ -1,21 +1,5 @@
 // @flow
 
-import assert from 'assert';
-import {parse as urlParse, format as urlFormat} from 'url';
-import fetch from 'node-fetch';
-import jayson from 'jayson/lib/client/browser';
-import {struct} from 'superstruct';
-import {Client as RpcWebSocketClient} from 'rpc-websockets';
-
-import {DEFAULT_TICKS_PER_SLOT, NUM_TICKS_PER_SEC} from './timing';
-import {PubKey} from './bvm-addr';
-import {Transaction} from './tx-dapp';
-import {dormant} from './util/dormant';
-import type {Blockhash} from './tx-seal';
-import type {FeeCalculator} from './gas-cost';
-import type {BusAccount} from './bvm-acct';
-import type {TxnSignature} from './tx-dapp';
-
 
 var number_type = 0;
 var string_type = 1;
@@ -62,6 +46,21 @@ function check(args, ...types) {
   }
 }
 
+import assert from 'assert';
+import {parse as urlParse, format as urlFormat} from 'url';
+import fetch from 'node-fetch';
+import jayson from 'jayson/lib/client/browser';
+import {struct} from 'superstruct';
+import {Client as RpcWebSocketClient} from 'rpc-websockets';
+
+import {DEFAULT_TICKS_PER_SLOT, NUM_TICKS_PER_SEC} from './timing';
+import {BvmAddr} from './bvm-addr';
+import {Transaction} from './tx-dapp';
+import {dormant} from './dormant';
+import type {Blockhash} from './tx-seal';
+import type {FeeCalculator} from './gas-cost';
+import type {BvmAcct} from './bvm-acct';
+import type {TxnSignature} from './tx-dapp';
 
 const ConditionOp = {
     EQ: 'eq',
@@ -959,27 +958,27 @@ const SendTxnRpcResult = jsonRpcResult('string');
  *
  * @typedef {Object} AccountDetail
  * @property {number} difs Number of difs assigned to the account
- * @property {PubKey} owner Identifier of the controller that owns the account
+ * @property {BvmAddr} owner Identifier of the controller that owns the account
  * @property {?Buffer} data Optional data assigned to the account
  * @property {boolean} executable `true` if this account's data contains a loaded controller
  */
 type AccountDetail = {
   executable: boolean,
-  owner: PubKey,
+  owner: BvmAddr,
   difs: number,
   reputations: number,
   data: Buffer,
 };
 
 /**
- * BusAccount information identified by pubkey
+ * BvmAcct information identified by pubkey
  *
  * @typedef {Object} KeyedAccountDetail
- * @property {PubKey} accountId
+ * @property {BvmAddr} accountId
  * @property {AccountDetail} fetchAccountDetail
  */
 type KeyedAccountDetail = {
-  accountId: PubKey,
+  accountId: BvmAddr,
   fetchAccountDetail: AccountDetail,
 };
 
@@ -992,7 +991,7 @@ export type AccountChangeCallback = (fetchAccountDetail: AccountDetail) => void;
  * @private
  */
 type AccountSubscriptionDetail = {
-  pubKey: string, // PubKey of the account as a base 58 string
+  pubKey: string, // BvmAddr of the account as a base 58 string
   callback: AccountChangeCallback,
   subscriptionId: null | number, // null when there's no current server subscription id
 };
@@ -1236,7 +1235,7 @@ export type ControllerAccountChangeCallback = (
  * @private
  */
 type ControllerAccountSubscriptionDetail = {
-  controllerId: string, // PubKey of the controller as a base 58 string
+  controllerId: string, // BvmAddr of the controller as a base 58 string
   callback: ControllerAccountChangeCallback,
   subscriptionId: null | number, // null when there's no current server subscription id
 };
@@ -1326,9 +1325,9 @@ export class Connection {
   /**
    * Fetch the balance for the specified public key
    */
-  async fetchAccountBalance(pubKey: PubKey): Promise<number> {
+  async fetchAccountBalance(pubKey: BvmAddr): Promise<number> {
     const unsafeRes = await this._rpcReq('getDif', [
-      pubKey.toBase58(),
+      pubKey.converseToBase58(),
     ]);
     const res = FetchBalanceRpcResult(unsafeRes);
     if (res.error) {
@@ -1338,9 +1337,9 @@ export class Connection {
     return res.result;
   }
 
-  async fetchAccountReputation(pubKey: PubKey): Promise<number> {
+  async fetchAccountReputation(pubKey: BvmAddr): Promise<number> {
     const unsafeRes = await this._rpcReq('getReputation', [
-      pubKey.toBase58(),
+      pubKey.converseToBase58(),
     ]);
     const res = FetchReputationRpcResult(unsafeRes);
     if (res.error) {
@@ -1353,9 +1352,9 @@ export class Connection {
   /**
    * Fetch all the account info for the specified public key
    */
-  async fetchAccountDetail(pubKey: PubKey): Promise<AccountDetail> {
+  async fetchAccountDetail(pubKey: BvmAddr): Promise<AccountDetail> {
     const unsafeRes = await this._rpcReq('getAccountInfo', [
-      pubKey.toBase58(),
+      pubKey.converseToBase58(),
     ]);
     const res = fetchAccountDetailRpcResult(unsafeRes);
     if (res.error) {
@@ -1367,7 +1366,7 @@ export class Connection {
 
     return {
       executable: result.executable,
-      owner: new PubKey(result.owner),
+      owner: new BvmAddr(result.owner),
       difs: result.difs,
       reputations: result.reputations,
       data: Buffer.from(result.data),
@@ -1522,11 +1521,11 @@ export class Connection {
    * Request an allocation of difs to the specified account
    */
   async reqDrone(
-    to: PubKey,
+    to: BvmAddr,
     amount: number,
   ): Promise<TxnSignature> {
     const unsafeRes = await this._rpcReq('requestDif', [
-      to.toBase58(),
+      to.converseToBase58(),
       amount,
     ]);
     const res = ReqDroneRpcResult(unsafeRes);
@@ -1541,11 +1540,11 @@ export class Connection {
    * Request an allocation of reputations to the specified account
    */
   async reqReputation(
-    to: PubKey,
+    to: BvmAddr,
     amount: number,
   ): Promise<TxnSignature> {
     const unsafeRes = await this._rpcReq('requestReputation', [
-      to.toBase58(),
+      to.converseToBase58(),
       amount,
     ]);
     const res = ReqReputationRpcResult(unsafeRes);
@@ -1561,7 +1560,7 @@ export class Connection {
    */
   async sendTxn(
     transaction: Transaction,
-    ...signers: Array<BusAccount>
+    ...signers: Array<BvmAcct>
   ): Promise<TxnSignature> {
     for (;;) {
       // Attempt to use a recent blockhash for up to 30 seconds
@@ -1762,7 +1761,7 @@ export class Connection {
 
         sub.callback({
           executable: result.executable,
-          owner: new PubKey(result.owner),
+          owner: new BvmAddr(result.owner),
           difs: result.difs,
           reputations: result.reputations,
           data: Buffer.from(result.data),
@@ -1780,12 +1779,12 @@ export class Connection {
    * @return subscription id
    */
   onAccountChange(
-    pubKey: PubKey,
+    pubKey: BvmAddr,
     callback: AccountChangeCallback,
   ): number {
     const id = ++this._accountChangeSubscriptionCounter;
     this._accountChangeSubscriptions[id] = {
-      pubKey: pubKey.toBase58(),
+      pubKey: pubKey.converseToBase58(),
       callback,
       subscriptionId: null,
     };
@@ -1837,7 +1836,7 @@ export class Connection {
           accountId: result[0],
           fetchAccountDetail: {
             executable: result[1].executable,
-            owner: new PubKey(result[1].owner),
+            owner: new BvmAddr(result[1].owner),
             difs: result[1].difs,
             reputations: result[1].reputations,
             data: Buffer.from(result[1].data),
@@ -1857,12 +1856,12 @@ export class Connection {
    * @return subscription id
    */
   onControllerAccountChange(
-    controllerId: PubKey,
+    controllerId: BvmAddr,
     callback: ControllerAccountChangeCallback,
   ): number {
     const id = ++this._controllerAccountChangeSubscriptionCounter;
     this._controllerAccountChangeSubscriptions[id] = {
-      controllerId: controllerId.toBase58(),
+      controllerId: controllerId.converseToBase58(),
       callback,
       subscriptionId: null,
     };

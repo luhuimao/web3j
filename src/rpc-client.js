@@ -3,8 +3,8 @@ var async = require('async');
 
 // var RpcSerializer = require('./rpc-serializer').RpcSerializer ;
 import {RpcSerializer} from './rpc-serializer';
-var RpcParameter = require('../rpc-parameter').RpcParameter;
-var RpcCall = require('../rpc-call').RpcCall;
+var RpcParameter = require('./rpc-parameter').RpcParameter;
+var RpcCall = require('./rpc-call').RpcCall;
 var RpcSender = require('./rpc-sender').RpcSender;
 
 /*

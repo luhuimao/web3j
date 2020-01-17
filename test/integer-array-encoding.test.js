@@ -1,6 +1,6 @@
 // @flow
 
-import {getDecodedArrayLength, encodeArrayWithInteger} from '../src/util/integer-array-encoding';
+import {getDecodedArrayLength, encodeArrayWithInteger} from '../src/integer-array-encoding';
 
 function checkDecodedArray(array: Array<number>, expectedValue: number) {
   expect(getDecodedArrayLength(array)).toEqual(expectedValue);

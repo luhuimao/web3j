@@ -1,6 +1,6 @@
 //@flow
 
-import {testnetDefaultChannel} from '../../package.json';
+import {testnetDefaultChannel} from '../package.json';
 
 
 // defines P2PKH and P2SH address types for standard (prod) and testnet networks

@@ -1,9 +1,4 @@
 // @flow
-import nacl from 'tweetnacl';
-import type {KeyPair} from 'tweetnacl';
-
-import {PubKey} from './bvm-addr';
-
 
     // static getPayload(cursor) {
     //   const argType = cursor.read32();
@@ -25,6 +20,11 @@ import {PubKey} from './bvm-addr';
     //   }
     //   return new TransactionArgumentLCS_1.TransactionArgumentLCS();
     // }
+
+import nacl from 'tweetnacl';
+import type {KeyPair} from 'tweetnacl';
+
+import {BvmAddr} from './bvm-addr';
 
 class CursorBuffer {
     constructor(typedArray, littleEndian = true) {
@@ -106,11 +106,11 @@ class CursorBuffer {
 /**
  * An account key pair (public and secret keys).
  */
-export class BusAccount {
+export class BvmAcct {
   _keypair: KeyPair;
 
   /**
-   * Create a new BusAccount object
+   * Create a new BvmAcct object
    *
    * If the privateKey parameter is not provided a new key pair is randomly
    * created for the account
@@ -128,8 +128,8 @@ export class BusAccount {
   /**
    * The public key for this account
    */
-  get pubKey(): PubKey {
-    return new PubKey(this._keypair.publicKey);
+  get pubKey(): BvmAddr {
+    return new BvmAddr(this._keypair.publicKey);
   }
 
   /**

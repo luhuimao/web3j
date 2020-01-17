@@ -1,5 +1,5 @@
 // @flow
-import {testnetChannelEndpoint} from '../src/util/testnet';
+import {testnetChannelEndpoint} from '../src/testnet';
 
 test('invalid', () => {
   expect(() => {

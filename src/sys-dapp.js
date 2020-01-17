@@ -1,11 +1,5 @@
 // @flow
 
-import * as BufferLayout from 'buffer-layout';
-
-import {Transaction} from './tx-dapp';
-import {PubKey} from './bvm-addr';
-import * as Layout from './buffer-cntl';
-
 var web3;
 /// get the balacne of given address in the bookkeeping variable
 async function getBookBalance(acc_address) {
@@ -71,6 +65,11 @@ async function findCandSequence(target_abis, attack_abis){
   }
 }
 
+import * as BufferLayout from 'buffer-layout';
+
+import {Transaction} from './tx-dapp';
+import {BvmAddr} from './bvm-addr';
+import * as Layout from './buffer-cntl';
 
 /// generate an account address
 function gen_address(adds_type){
@@ -118,8 +117,8 @@ export class SystemController {
   /**
    * Public key that identifies the System controller
    */
-  static get controllerId(): PubKey {
-    return new PubKey(
+  static get controllerId(): BvmAddr {
+    return new BvmAddr(
       '0x000000000000000000000000000000000000000000000000000000000000000',
     );
   }
@@ -128,12 +127,12 @@ export class SystemController {
    * Generate a Transaction that creates a new account
    */
   static createNewAccount(
-    from: PubKey,
-    createNewAccount: PubKey,
+    from: BvmAddr,
+    createNewAccount: BvmAddr,
     difs: number,
     reputations: number,
     space: number,
-    controllerId: PubKey,
+    controllerId: BvmAddr,
   ): Transaction {
     const dataLayout = BufferLayout.struct([
       BufferLayout.u32('instruction'),
@@ -146,11 +145,11 @@ export class SystemController {
     const data = Buffer.alloc(dataLayout.span);
     dataLayout.encode(
       {
-        instruction: 0, // Create BusAccount instruction
+        instruction: 0, // Create BvmAcct instruction
         difs,
         reputations,
         space,
-        controllerId: controllerId.toBuffer(),
+        controllerId: controllerId.converseToBuffer(),
       },
       data,
     );
@@ -168,7 +167,7 @@ export class SystemController {
   /**
    * Generate a Transaction that transfers difs from one account to another
    */
-  static transfer(from: PubKey, to: PubKey, amount: number): Transaction {
+  static transfer(from: BvmAddr, to: BvmAddr, amount: number): Transaction {
     const dataLayout = BufferLayout.struct([
       BufferLayout.u32('instruction'),
       BufferLayout.ns64('amount'),
@@ -196,7 +195,7 @@ export class SystemController {
   /**
    * Generate a Transaction that transfers reputations from one account to another
    */
-  static transferReputation(from: PubKey, to: PubKey, amount: number): Transaction {
+  static transferReputation(from: BvmAddr, to: BvmAddr, amount: number): Transaction {
     const dataLayout = BufferLayout.struct([
       BufferLayout.u32('instruction'),
       BufferLayout.ns64('amount'),
@@ -224,7 +223,7 @@ export class SystemController {
   /**
    * Generate a Transaction that assigns an account to a controller
    */
-  static assign(from: PubKey, controllerId: PubKey): Transaction {
+  static assign(from: BvmAddr, controllerId: BvmAddr): Transaction {
     const dataLayout = BufferLayout.struct([
       BufferLayout.u32('instruction'),
       Layout.pubKey('controllerId'),
@@ -234,7 +233,7 @@ export class SystemController {
     dataLayout.encode(
       {
         instruction: 1, // Assign instruction
-        controllerId: controllerId.toBuffer(),
+        controllerId: controllerId.converseToBuffer(),
       },
       data,
     );
@@ -319,7 +318,7 @@ async function exec_callFun(call){
   console.log(target_bal_sum_bf);
   console.log(target_bal_sum_af);
   
-  /// TODO still not consider the price of token in bookkeeping variable  
+  /// TODO still not consider the price of asset in bookkeeping variable  
   try{ 
     // if((BigInt(target_bal_bf) - BigInt(target_bal_sum_bf)) != (BigInt(target_bal_af) - BigInt(target_bal_sum_af))){
     //   throw "Balance invariant is not held....";

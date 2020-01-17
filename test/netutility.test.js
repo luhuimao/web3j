@@ -1,10 +1,10 @@
 // @flow
-import {BusAccount, Connection, BpfControllerLoader, ControllerLoader, SystemController} from '../src';
+import {BvmAcct, Connection, BpfControllerLoader, ControllerLoader, SystemController} from '../src';
 import {DEFAULT_TICKS_PER_SLOT, NUM_TICKS_PER_SEC} from '../src/timing';
 import {mockRpc, mockRpcEnabled} from './__mocks__/node-fetch';
 import {mockGetRecentBlockhash} from './mockrpc/get-recent-blockhash';
 import {url} from './url';
-import {dormant} from '../src/util/dormant';
+import {dormant} from '../src/dormant';
 
 if (!mockRpcEnabled) {
   // The default of 5 seconds is too slow for live testing sometimes
@@ -20,14 +20,14 @@ const errorResponse = {
 };
 
 test('get account info - error', () => {
-  const account = new BusAccount();
+  const account = new BvmAcct();
   const connection = new Connection(url);
 
   mockRpc.push([
     url,
     {
       method: 'getAccountInfo',
-      params: [account.pubKey.toBase58()],
+      params: [account.pubKey.converseToBase58()],
     },
     errorResponse,
   ]);
@@ -60,14 +60,14 @@ test('fullnodeQuit', async () => {
 });
 
 test('get balance', async () => {
-  const account = new BusAccount();
+  const account = new BvmAcct();
   const connection = new Connection(url);
 
   mockRpc.push([
     url,
     {
       method: 'getDif',
-      params: [account.pubKey.toBase58()],
+      params: [account.pubKey.converseToBase58()],
     },
     {
       error: null,
@@ -80,14 +80,14 @@ test('get balance', async () => {
 });
 
 test('get reputation', async () => {
-  const account = new BusAccount();
+  const account = new BvmAcct();
   const connection = new Connection(url);
 
   mockRpc.push([
     url,
     {
       method: 'getReputation',
-      params: [account.pubKey.toBase58()],
+      params: [account.pubKey.converseToBase58()],
     },
     {
       error: null,
@@ -252,14 +252,14 @@ test('get recent blockhash', async () => {
 });
 
 test('request airdrop', async () => {
-  const account = new BusAccount();
+  const account = new BvmAcct();
   const connection = new Connection(url);
 
   mockRpc.push([
     url,
     {
       method: 'requestDif',
-      params: [account.pubKey.toBase58(), 40],
+      params: [account.pubKey.converseToBase58(), 40],
     },
     {
       error: null,
@@ -271,7 +271,7 @@ test('request airdrop', async () => {
     url,
     {
       method: 'requestDif',
-      params: [account.pubKey.toBase58(), 2],
+      params: [account.pubKey.converseToBase58(), 2],
     },
     {
       error: null,
@@ -283,7 +283,7 @@ test('request airdrop', async () => {
     url,
     {
       method: 'getDif',
-      params: [account.pubKey.toBase58()],
+      params: [account.pubKey.converseToBase58()],
     },
     {
       error: null,
@@ -301,7 +301,7 @@ test('request airdrop', async () => {
     url,
     {
       method: 'getAccountInfo',
-      params: [account.pubKey.toBase58()],
+      params: [account.pubKey.converseToBase58()],
     },
     {
       error: null,
@@ -356,14 +356,14 @@ test('request airdrop', async () => {
 });
 
 test('request Reputation', async () => {
-  const account = new BusAccount();
+  const account = new BvmAcct();
   const connection = new Connection(url);
 
   mockRpc.push([
     url,
     {
       method: 'requestReputation',
-      params: [account.pubKey.toBase58(), 40],
+      params: [account.pubKey.converseToBase58(), 40],
     },
     {
       error: null,
@@ -375,7 +375,7 @@ test('request Reputation', async () => {
     url,
     {
       method: 'requestReputation',
-      params: [account.pubKey.toBase58(), 2],
+      params: [account.pubKey.converseToBase58(), 2],
     },
     {
       error: null,
@@ -387,7 +387,7 @@ test('request Reputation', async () => {
     url,
     {
       method: 'getReputation',
-      params: [account.pubKey.toBase58()],
+      params: [account.pubKey.converseToBase58()],
     },
     {
       error: null,
@@ -405,7 +405,7 @@ test('request Reputation', async () => {
     url,
     {
       method: 'getAccountInfo',
-      params: [account.pubKey.toBase58()],
+      params: [account.pubKey.converseToBase58()],
     },
     {
       error: null,
@@ -460,15 +460,15 @@ test('request Reputation', async () => {
 });
 
 test('transaction', async () => {
-  const accountFrom = new BusAccount();
-  const accountTo = new BusAccount();
+  const accountFrom = new BvmAcct();
+  const accountTo = new BvmAcct();
   const connection = new Connection(url);
 
   mockRpc.push([
     url,
     {
       method: 'requestDif',
-      params: [accountFrom.pubKey.toBase58(), 100010],
+      params: [accountFrom.pubKey.converseToBase58(), 100010],
     },
     {
       error: null,
@@ -480,7 +480,7 @@ test('transaction', async () => {
     url,
     {
       method: 'getDif',
-      params: [accountFrom.pubKey.toBase58()],
+      params: [accountFrom.pubKey.converseToBase58()],
     },
     {
       error: null,
@@ -494,7 +494,7 @@ test('transaction', async () => {
     url,
     {
       method: 'requestDif',
-      params: [accountTo.pubKey.toBase58(), 21],
+      params: [accountTo.pubKey.converseToBase58(), 21],
     },
     {
       error: null,
@@ -506,7 +506,7 @@ test('transaction', async () => {
     url,
     {
       method: 'getDif',
-      params: [accountTo.pubKey.toBase58()],
+      params: [accountTo.pubKey.converseToBase58()],
     },
     {
       error: null,
@@ -582,7 +582,7 @@ test('transaction', async () => {
     url,
     {
       method: 'getDif',
-      params: [accountFrom.pubKey.toBase58()],
+      params: [accountFrom.pubKey.converseToBase58()],
     },
     {
       error: null,
@@ -599,7 +599,7 @@ test('transaction', async () => {
     url,
     {
       method: 'getDif',
-      params: [accountTo.pubKey.toBase58()],
+      params: [accountTo.pubKey.converseToBase58()],
     },
     {
       error: null,
@@ -615,8 +615,8 @@ test('multi-instruction transaction', async () => {
     return;
   }
 
-  const accountFrom = new BusAccount();
-  const accountTo = new BusAccount();
+  const accountFrom = new BvmAcct();
+  const accountTo = new BvmAcct();
   const connection = new Connection(url);
 
   await connection.reqDrone(accountFrom.pubKey, 100000);
@@ -669,8 +669,8 @@ test('account change notification', async () => {
   }
 
   const connection = new Connection(url);
-  const owner = new BusAccount();
-  const controllerAccount = new BusAccount();
+  const owner = new BvmAcct();
+  const controllerAccount = new BvmAcct();
 
   const mockCallback = jest.fn();
 
@@ -694,7 +694,7 @@ test('account change notification', async () => {
     }
 
     if (++i === 30) {
-      throw new Error('BusAccount change notification not observed');
+      throw new Error('BvmAcct change notification not observed');
     }
     // Sleep for a 1/4 of a round, notifications only occur after a block is
     // processed
@@ -715,8 +715,8 @@ test('controller account change notification', async () => {
   }
 
   const connection = new Connection(url);
-  const owner = new BusAccount();
-  const controllerAccount = new BusAccount();
+  const owner = new BvmAcct();
+  const controllerAccount = new BvmAcct();
 
   // const mockCallback = jest.fn();
 
@@ -724,7 +724,7 @@ test('controller account change notification', async () => {
   const subscriptionId = connection.onControllerAccountChange(
     BpfControllerLoader.controllerId,
     keyedAccountInfo => {
-      if (keyedAccountInfo.accountId !== controllerAccount.pubKey.toString()) {
+      if (keyedAccountInfo.accountId !== controllerAccount.pubKey.converseToString()) {
         //console.log('Ignoring another account', keyedAccountInfo);
         return;
       }

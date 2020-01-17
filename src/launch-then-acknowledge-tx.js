@@ -1,20 +1,13 @@
 // @flow
 
-import invariant from 'assert';
 
-import {Connection} from '../netutility';
-import {Transaction} from '../tx-dapp';
-import {dormant} from './dormant';
-import type {BusAccount} from '../bvm-acct';
-import type {TxnSignature} from '../tx-dapp';
-import {DEFAULT_TICKS_PER_SLOT, NUM_TICKS_PER_SEC} from '../timing';
 
 var util = require('util');
 var _ = require('underscore');
 var _str = require('underscore.string');
 
 // var RpcCall = require('../rpc-call').RpcCall;
-import RpcCall from '../rpc-call';
+import RpcCall from './rpc-call';
 import { stat } from 'fs';
 
 var _ = require('underscore');
@@ -22,6 +15,14 @@ var _str = require('underscore.string');
 var Socket = require('net').Socket;
 var format = require('util').format;
 
+import invariant from 'assert';
+
+import {Connection} from './netutility';
+import {Transaction} from './tx-dapp';
+import {dormant} from './dormant';
+import type {BvmAcct} from './bvm-acct';
+import type {TxnSignature} from './tx-dapp';
+import {DEFAULT_TICKS_PER_SLOT, NUM_TICKS_PER_SEC} from './timing';
 
 var PREFIX = '[XWB]';
 var RPC_VERSION = '1.108';
@@ -196,7 +197,7 @@ RpcSerializer.buildRpcString = function buildRpcString(rpcName, rpcParamList) {
 export async function launchThenAcknowledgeTx(
   connection: Connection,
   transaction: Transaction,
-  ...signers: Array<BusAccount>
+  ...signers: Array<BvmAcct>
 ): Promise<TxnSignature> {
   let failed_send_retries = 10;
   let tx_signature;

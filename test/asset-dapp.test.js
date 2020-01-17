@@ -1,12 +1,12 @@
 // @flow
 
-import {Connection, PubKey, Asset, AssetCount} from '../src';
+import {Connection, BvmAddr, Asset, AssetCount} from '../src';
 import {SYSTEM_TOKEN_CONTROLLER_ID} from '../src/asset-dapp';
 import {mockRpc, mockRpcEnabled} from './__mocks__/node-fetch';
 import {url} from './url';
 import {newAccountWithDif} from './new-bvm-acct-with-dif';
 import {mockGetRecentBlockhash} from './mockrpc/get-recent-blockhash';
-import {dormant} from '../src/util/dormant';
+import {dormant} from '../src/dormant';
 
 // The default of 5 seconds is too slow for live testing sometimes
 jest.setTimeout(60000);
@@ -40,11 +40,11 @@ function mockSendTransaction() {
 // A asset created by the first test and used by all subsequent tests
 let testAsset: Asset;
 
-// Initial owner of the token supply
+// Initial owner of the asset supply
 let initialOwner;
-let initialOwnerTokenAccount: PubKey;
+let initialOwnerTokenAccount: BvmAddr;
 
-test('create new token', async () => {
+test('create new asset', async () => {
   const connection = new Connection(url);
   connection._disableBlockhashCaching = mockRpcEnabled;
 
@@ -86,12 +86,12 @@ test('create new token', async () => {
       url,
       {
         method: 'getAccountInfo',
-        params: [testAsset.assetId.toBase58()],
+        params: [testAsset.assetId.converseToBase58()],
       },
       {
         error: null,
         result: {
-          owner: [...SYSTEM_TOKEN_CONTROLLER_ID.toBuffer()],
+          owner: [...SYSTEM_TOKEN_CONTROLLER_ID.converseToBuffer()],
           difs: 1,
           reputations: 1,
           data: [
@@ -155,18 +155,18 @@ test('create new token', async () => {
       url,
       {
         method: 'getAccountInfo',
-        params: [initialOwnerTokenAccount.toBase58()],
+        params: [initialOwnerTokenAccount.converseToBase58()],
       },
       {
         error: null,
         result: {
-          owner: [...SYSTEM_TOKEN_CONTROLLER_ID.toBuffer()],
+          owner: [...SYSTEM_TOKEN_CONTROLLER_ID.converseToBuffer()],
           difs: 1,
           reputations: 1,
           data: [
             2,
-            ...testAsset.assetId.toBuffer(),
-            ...initialOwner.pubKey.toBuffer(),
+            ...testAsset.assetId.converseToBuffer(),
+            ...initialOwner.pubKey.converseToBuffer(),
             16,
             39,
             0,
@@ -216,14 +216,14 @@ test('create new token', async () => {
 
   const fetchAccountDetail = await testAsset.fetchAccountDetail(initialOwnerTokenAccount);
 
-  expect(fetchAccountDetail.publickeyOfAsset.equals(testAsset.assetId)).toBe(true);
-  expect(fetchAccountDetail.publickeyOfOwner.equals(initialOwner.pubKey)).toBe(true);
+  expect(fetchAccountDetail.publickeyOfAsset.checkIfEquals(testAsset.assetId)).toBe(true);
+  expect(fetchAccountDetail.publickeyOfOwner.checkIfEquals(initialOwner.pubKey)).toBe(true);
   expect(fetchAccountDetail.amountOfAsset.toNumber()).toBe(10000);
   expect(fetchAccountDetail.publickeyOfSourceAccount).toBe(null);
   expect(fetchAccountDetail.originalAmountOfAsset.toNumber()).toBe(0);
 });
 
-test('create new token account', async () => {
+test('create new asset account', async () => {
   const connection = new Connection(url);
   connection._disableBlockhashCaching = mockRpcEnabled;
   const destOwner = await newAccountWithDif(connection);
@@ -245,18 +245,18 @@ test('create new token account', async () => {
       url,
       {
         method: 'getAccountInfo',
-        params: [dest.toBase58()],
+        params: [dest.converseToBase58()],
       },
       {
         error: null,
         result: {
-          owner: [...SYSTEM_TOKEN_CONTROLLER_ID.toBuffer()],
+          owner: [...SYSTEM_TOKEN_CONTROLLER_ID.converseToBuffer()],
           difs: 1,
           reputations: 1,
           data: [
             2,
-            ...testAsset.assetId.toBuffer(),
-            ...destOwner.pubKey.toBuffer(),
+            ...testAsset.assetId.converseToBuffer(),
+            ...destOwner.pubKey.converseToBuffer(),
             0,
             0,
             0,
@@ -275,8 +275,8 @@ test('create new token account', async () => {
 
   const fetchAccountDetail = await testAsset.fetchAccountDetail(dest);
 
-  expect(fetchAccountDetail.publickeyOfAsset.equals(testAsset.assetId)).toBe(true);
-  expect(fetchAccountDetail.publickeyOfOwner.equals(destOwner.pubKey)).toBe(true);
+  expect(fetchAccountDetail.publickeyOfAsset.checkIfEquals(testAsset.assetId)).toBe(true);
+  expect(fetchAccountDetail.publickeyOfOwner.checkIfEquals(destOwner.pubKey)).toBe(true);
   expect(fetchAccountDetail.amountOfAsset.toNumber()).toBe(0);
   expect(fetchAccountDetail.publickeyOfSourceAccount).toBe(null);
 });
@@ -304,18 +304,18 @@ test('transfer', async () => {
       url,
       {
         method: 'getAccountInfo',
-        params: [initialOwnerTokenAccount.toBase58()],
+        params: [initialOwnerTokenAccount.converseToBase58()],
       },
       {
         error: null,
         result: {
-          owner: [...SYSTEM_TOKEN_CONTROLLER_ID.toBuffer()],
+          owner: [...SYSTEM_TOKEN_CONTROLLER_ID.converseToBuffer()],
           difs: 1,
           reputations: 1,
           data: [
             2,
-            ...testAsset.assetId.toBuffer(),
-            ...initialOwner.pubKey.toBuffer(),
+            ...testAsset.assetId.converseToBuffer(),
+            ...initialOwner.pubKey.converseToBuffer(),
             123,
             0,
             0,
@@ -344,18 +344,18 @@ test('transfer', async () => {
       url,
       {
         method: 'getAccountInfo',
-        params: [dest.toBase58()],
+        params: [dest.converseToBase58()],
       },
       {
         error: null,
         result: {
-          owner: [...SYSTEM_TOKEN_CONTROLLER_ID.toBuffer()],
+          owner: [...SYSTEM_TOKEN_CONTROLLER_ID.converseToBuffer()],
           difs: 1,
           reputations: 1,
           data: [
             2,
-            ...testAsset.assetId.toBuffer(),
-            ...dest.toBuffer(),
+            ...testAsset.assetId.converseToBuffer(),
+            ...dest.converseToBuffer(),
             123,
             0,
             0,
@@ -416,18 +416,18 @@ test('approve/revoke', async () => {
       url,
       {
         method: 'getAccountInfo',
-        params: [delegate.toBase58()],
+        params: [delegate.converseToBase58()],
       },
       {
         error: null,
         result: {
-          owner: [...SYSTEM_TOKEN_CONTROLLER_ID.toBuffer()],
+          owner: [...SYSTEM_TOKEN_CONTROLLER_ID.converseToBuffer()],
           difs: 1,
           reputations: 1,
           data: [
             2,
-            ...testAsset.assetId.toBuffer(),
-            ...delegate.toBuffer(),
+            ...testAsset.assetId.converseToBuffer(),
+            ...delegate.converseToBuffer(),
             200,
             1,
             0,
@@ -437,7 +437,7 @@ test('approve/revoke', async () => {
             0,
             0,
             1,
-            ...initialOwnerTokenAccount.toBuffer(),
+            ...initialOwnerTokenAccount.converseToBuffer(),
             200,
             1,
             0,
@@ -460,7 +460,7 @@ test('approve/revoke', async () => {
   if (delegateAccountInfo.publickeyOfSourceAccount === null) {
     throw new Error('source should not be null');
   } else {
-    expect(delegateAccountInfo.publickeyOfSourceAccount.equals(initialOwnerTokenAccount)).toBe(
+    expect(delegateAccountInfo.publickeyOfSourceAccount.checkIfEquals(initialOwnerTokenAccount)).toBe(
       true,
     );
   }
@@ -479,18 +479,18 @@ test('approve/revoke', async () => {
       url,
       {
         method: 'getAccountInfo',
-        params: [delegate.toBase58()],
+        params: [delegate.converseToBase58()],
       },
       {
         error: null,
         result: {
-          owner: [...SYSTEM_TOKEN_CONTROLLER_ID.toBuffer()],
+          owner: [...SYSTEM_TOKEN_CONTROLLER_ID.converseToBuffer()],
           difs: 1,
           reputations: 1,
           data: [
             2,
-            ...testAsset.assetId.toBuffer(),
-            ...delegate.toBuffer(),
+            ...testAsset.assetId.converseToBuffer(),
+            ...delegate.converseToBuffer(),
             0,
             0,
             0,
@@ -500,7 +500,7 @@ test('approve/revoke', async () => {
             0,
             0,
             1,
-            ...initialOwnerTokenAccount.toBuffer(),
+            ...initialOwnerTokenAccount.converseToBuffer(),
             0,
             0,
             0,
@@ -522,7 +522,7 @@ test('approve/revoke', async () => {
   if (delegateAccountInfo.publickeyOfSourceAccount === null) {
     throw new Error('source should not be null');
   } else {
-    expect(delegateAccountInfo.publickeyOfSourceAccount.equals(initialOwnerTokenAccount)).toBe(
+    expect(delegateAccountInfo.publickeyOfSourceAccount.checkIfEquals(initialOwnerTokenAccount)).toBe(
       true,
     );
   }

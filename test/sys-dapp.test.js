@@ -1,10 +1,10 @@
 // @flow
 
-import {BusAccount, BudgetController, SystemController} from '../src';
+import {BvmAcct, BudgetController, SystemController} from '../src';
 
 test('createNewAccount', () => {
-  const from = new BusAccount();
-  const createNewAccount = new BusAccount();
+  const from = new BvmAcct();
+  const createNewAccount = new BvmAcct();
   let transaction;
 
   transaction = SystemController.createNewAccount(
@@ -22,8 +22,8 @@ test('createNewAccount', () => {
 });
 
 test('transfer', () => {
-  const from = new BusAccount();
-  const to = new BusAccount();
+  const from = new BvmAcct();
+  const to = new BvmAcct();
   let transaction;
 
   transaction = SystemController.transfer(from.pubKey, to.pubKey, 123);
@@ -34,8 +34,8 @@ test('transfer', () => {
 });
 
 test('transferReputation', () => {
-  const from = new BusAccount();
-  const to = new BusAccount();
+  const from = new BvmAcct();
+  const to = new BvmAcct();
   let transaction;
 
   transaction = SystemController.transferReputation(from.pubKey, to.pubKey, 123);
@@ -46,8 +46,8 @@ test('transferReputation', () => {
 });
 
 test('assign', () => {
-  const from = new BusAccount();
-  const to = new BusAccount();
+  const from = new BvmAcct();
+  const to = new BvmAcct();
   let transaction;
 
   transaction = SystemController.assign(from.pubKey, to.pubKey);
