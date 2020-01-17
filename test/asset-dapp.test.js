@@ -398,12 +398,12 @@ test('approve/revoke', async () => {
   );
 
   {
-    // mock Token.approve() transaction
+    // mock Token.authorize() transaction
     mockSendTransaction();
     mockGetSignatureStatus();
   }
 
-  await testAsset.approve(
+  await testAsset.authorize(
     initialOwner,
     initialOwnerTokenAccount,
     delegate,
@@ -466,12 +466,12 @@ test('approve/revoke', async () => {
   }
 
   {
-    // mock Token.revoke() transaction
+    // mock Token.unauthorize() transaction
     mockSendTransaction();
     mockGetSignatureStatus();
   }
 
-  await testAsset.revoke(initialOwner, initialOwnerTokenAccount, delegate);
+  await testAsset.unauthorize(initialOwner, initialOwnerTokenAccount, delegate);
 
   {
     // mock Token.fetchAccountDetail()'s fetchAccountDetail
@@ -543,16 +543,16 @@ test('invalid approve', async () => {
 
   // account2 is not a delegate account of account1
   await expect(
-    testAsset.approve(owner, account1, account2, 123),
+    testAsset.authorize(owner, account1, account2, 123),
   ).rejects.toThrow();
 
   // account1Delegate is not a delegate account of account2
   await expect(
-    testAsset.approve(owner, account2, account1Delegate, 123),
+    testAsset.authorize(owner, account2, account1Delegate, 123),
   ).rejects.toThrow();
 });
 
-test('fail on approve overspend', async () => {
+test('fail on authorize overspend', async () => {
   if (mockRpcEnabled) {
     console.log('non-live test skipped');
     return;
@@ -572,7 +572,7 @@ test('fail on approve overspend', async () => {
     10,
   );
 
-  await testAsset.approve(owner, account1, account1Delegate, 2);
+  await testAsset.authorize(owner, account1, account1Delegate, 2);
 
   let delegateAccountInfo = await testAsset.fetchAccountDetail(account1Delegate);
   expect(delegateAccountInfo.amountOfAsset.toNumber()).toBe(2);
@@ -607,10 +607,10 @@ test('set owner', async () => {
 
   const account = await testAsset.createNewAssetAccount(owner);
 
-  await testAsset.setOwner(owner, account, newOwner.pubKey);
+  await testAsset.setNewOwnerToAssetAccount(owner, account, newOwner.pubKey);
   await expect(
-    testAsset.setOwner(owner, account, newOwner.pubKey),
+    testAsset.setNewOwnerToAssetAccount(owner, account, newOwner.pubKey),
   ).rejects.toThrow();
 
-  await testAsset.setOwner(newOwner, account, owner.pubKey);
+  await testAsset.setNewOwnerToAssetAccount(newOwner, account, owner.pubKey);
 });

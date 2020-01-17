@@ -522,7 +522,7 @@ export class Asset {
   /**
    * Create a new and empty asset account.
    *
-   * This account may then be used as a `transferAsset()` or `approve()` destination
+   * This account may then be used as a `transferAsset()` or `authorize()` destination
    *
    * @param ownerAccount User account that will own the new asset account
    * @param bvmAddrOfSourceAccount If not null, create a delegate account that when authorized
@@ -669,99 +669,99 @@ export class Asset {
   /**
    * Grant a third-party permission to transfer up the specified number of assets from an account
    *
-   * @param owner Owner of the source asset account
-   * @param account Public key of the asset account
-   * @param delegate Token account authorized to perform a transfer assets from the source account
-   * @param amount Maximum number of assets the delegate may transfer
+   * @param ownerAccount Owner of the source asset account
+   * @param publickeyOfAssetAccount Public key of the asset account
+   * @param publickeyOfDelegateAccount Token account authorized to perform a transfer assets from the source account
+   * @param amountAsset Maximum number of assets the delegate may transfer
    */
-  async approve(
-    owner: BusAccount,
-    account: PubKey,
-    delegate: PubKey,
-    amount: number | AssetCount,
+  async authorize(
+    ownerAccount: BusAccount,
+    publickeyOfAssetAccount: PubKey,
+    publickeyOfDelegateAccount: PubKey,
+    amountAsset: number | AssetCount,
   ): Promise<void> {
     await launchThenAcknowledgeTx(
       this.connection,
       new Transaction().add(
-        this.approveOperation(owner.pubKey, account, delegate, amount),
+        this.approveOperation(ownerAccount.pubKey, publickeyOfAssetAccount, publickeyOfDelegateAccount, amountAsset),
       ),
-      owner,
+      ownerAccount,
     );
   }
 
   /**
    * Remove approval for the transfer of any remaining assets
    *
-   * @param owner Owner of the source asset account
-   * @param account Public key of the asset account
-   * @param delegate Token account to revoke authorization from
+   * @param ownerAccount Owner of the source asset account
+   * @param publickeyOfAssetAccount Public key of the asset account
+   * @param publickeyOfDelegateAccount Token account to revoke authorization from
    */
-  revoke(
-    owner: BusAccount,
-    account: PubKey,
-    delegate: PubKey,
+  unauthorize(
+    ownerAccount: BusAccount,
+    publickeyOfAssetAccount: PubKey,
+    publickeyOfDelegateAccount: PubKey,
   ): Promise<void> {
-    return this.approve(owner, account, delegate, 0);
+    return this.authorize(ownerAccount, publickeyOfAssetAccount, publickeyOfDelegateAccount, 0);
   }
 
   /**
    * Assign a new owner to the account
    *
-   * @param owner Owner of the asset account
-   * @param account Public key of the asset account
-   * @param newOwner New owner of the asset account
+   * @param ownerAccount Owner of the asset account
+   * @param publickeyOfAssetAccount Public key of the asset account
+   * @param publickeyOfNewOwner New owner of the asset account
    */
-  async setOwner(
-    owner: BusAccount,
-    account: PubKey,
-    newOwner: PubKey,
+  async setNewOwnerToAssetAccount(
+    ownerAccount: BusAccount,
+    publickeyOfAssetAccount: PubKey,
+    publickeyOfNewOwner: PubKey,
   ): Promise<void> {
     await launchThenAcknowledgeTx(
       this.connection,
       new Transaction().add(
-        this.setOwnerOperation(owner.pubKey, account, newOwner),
+        this.setOwnerOperation(ownerAccount.pubKey, publickeyOfAssetAccount, publickeyOfNewOwner),
       ),
-      owner,
+      ownerAccount,
     );
   }
 
   /**
    * Construct a Transfer instruction
    *
-   * @param owner Owner of the source asset account
-   * @param source Source asset account
-   * @param destination Destination asset account
+   * @param publickeyOfOwnerSourceAccount Owner of the source asset account
+   * @param publickeyOfSourceAccount Source asset account
+   * @param publickeyOfDestinationAccount Destination asset account
    * @param amount Number of assets to transfer
    */
   async transferOperation(
-    owner: PubKey,
-    source: PubKey,
-    destination: PubKey,
-    amount: number | AssetCount,
+    publickeyOfOwnerSourceAccount: PubKey,
+    publickeyOfSourceAccount: PubKey,
+    publickeyOfDestinationAccount: PubKey,
+    amountAsset: number | AssetCount,
   ): Promise<TxOperation> {
-    const fetchAccountDetail = await this.fetchAccountDetail(source);
-    if (!owner.equals(fetchAccountDetail.publickeyOfOwner)) {
+    const fetchAccountDetail = await this.fetchAccountDetail(publickeyOfSourceAccount);
+    if (!publickeyOfOwnerSourceAccount.equals(fetchAccountDetail.publickeyOfOwner)) {
       throw new Error('BusAccount owner mismatch');
     }
 
     const dataLayout = BufferLayout.struct([
       BufferLayout.u32('instruction'),
-      Layout.uint64('amount'),
+      Layout.uint64('amountAsset'),
     ]);
 
     const data = Buffer.alloc(dataLayout.span);
     dataLayout.encode(
       {
         instruction: 2, // Transfer instruction
-        amount: new AssetCount(amount).convertToBuffer(),
+        amountAsset: new AssetCount(amountAsset).convertToBuffer(),
       },
       data,
     );
 
     const keys = [
-      {pubkey: owner, isSigner: true, isDebitable: false},
-      {pubkey: source, isSigner: false, isDebitable: true},
-      {pubkey: destination, isSigner: false, isDebitable: true},
+      {pubkey: publickeyOfOwnerSourceAccount, isSigner: true, isDebitable: false},
+      {pubkey: publickeyOfSourceAccount, isSigner: false, isDebitable: true},
+      {pubkey: publickeyOfDestinationAccount, isSigner: false, isDebitable: true},
     ];
     if (fetchAccountDetail.publickeyOfSourceAccount) {
       keys.push({
