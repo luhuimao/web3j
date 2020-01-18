@@ -105,7 +105,7 @@ function decode (bechString) {
  */
 export class BpfControllerLoader {
   /**
-   * Public key that identifies the BpfControllerLoader
+   * Bvm Address that identifies the BpfControllerLoader
    */
   static get controllerId(): BvmAddr {
     return new BvmAddr('BPFLoader1111111111111111111111111111111111');

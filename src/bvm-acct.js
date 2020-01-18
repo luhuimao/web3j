@@ -126,7 +126,7 @@ export class BvmAcct {
   }
 
   /**
-   * The public key for this account
+   * The bvm address for this account
    */
   get pubKey(): BvmAddr {
     return new BvmAddr(this._keypair.publicKey);

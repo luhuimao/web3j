@@ -102,7 +102,7 @@ function toDisplayAmount(number) {
  * 
  * @typedef {Object} SignatureCond
  * @property {string} type string type for 'signature'
- * @property {BvmAddr} from Public key for whom signed the transaction
+ * @property {BvmAddr} from Bvm Address for whom signed the transaction
  */
 export type SignatureCond = {
   type: 'signature',
@@ -114,7 +114,7 @@ export type SignatureCond = {
 
  * @typedef {Object} TimestampCond
  * @property {string} type string type 'timestamp'
- * @property {BvmAddr} from Public key from which `sealWithDatetime()` will be accepted from
+ * @property {BvmAddr} from Bvm Address from which `sealWithDatetime()` will be accepted from
  * @property {Date} when The timestamp that will be trigger
  */
 export type TimestampCond = {
@@ -124,11 +124,11 @@ export type TimestampCond = {
 };
 
 /**
- * Payment consist of payment's amount and payee's public key
+ * Payment consist of payment's amount and payee's bvm address
  * 
  * @typedef {Object} Payment
  * @property {number} amount Amount of difs
- * @property {BvmAddr} to Public key of the payee
+ * @property {BvmAddr} to Bvm Address of the payee
  */
 export type Payment = {
   amount: number,
@@ -225,7 +225,7 @@ function serializeCond(condition: BudgetCond) {
  */
 export class BudgetController {
   /**
-   * Public key that identifies the Budget controller
+   * Bvm Address that identifies the Budget controller
    */
   static get controllerId(): BvmAddr {
     return new BvmAddr('Budget1111111111111111111111111111111111111');

@@ -58,7 +58,7 @@ import {BvmAddr} from './bvm-addr';
 import {Transaction} from './tx-dapp';
 import {dormant} from './dormant';
 import type {Blockhash} from './tx-seal';
-import type {FeeCalculator} from './gas-cost';
+import type {GasCounter} from './gas-cost';
 import type {BvmAcct} from './bvm-acct';
 import type {TxnSignature} from './tx-dapp';
 
@@ -394,15 +394,15 @@ type RpcReq = (methodName: string, args: Array<any>) => any;
  * Information describing a cluster node
  *
  * @typedef {Object} NodeInfo
- * @property {string} pubkey Identity public key of the node
- * @property {string} gossip Gossip network address for the node
- * @property {string} tpu TPU network address for the node (null if not available)
+ * @property {string} bvmaddr Identity bvm address of the node
+ * @property {string} kingnodeip cluster network address for the node
+ * @property {string} txProcessIp transaction process address for the node (null if not available)
  * @property {string|null} rpc JSON RPC network address for the node (null if not available)
  */
 type NodeInfo = {
-  pubkey: string,
-  gossip: string,
-  tpu: string | null,
+  bvmaddr: string,
+  kingnodeip: string,
+  txProcessIp: string | null,
   rpc: string | null,
 };
 
@@ -410,14 +410,14 @@ type NodeInfo = {
  * Information describing a vote account
  *
  * @typedef {Object} VoteAccountInfo
- * @property {string} votePubkey Public key of the vote account
- * @property {string} nodePubkey Identity public key of the node voting with this account
+ * @property {string} voteBvmAddr Bvm Address of the vote account
+ * @property {string} nodeBvmAddr Identity Bvm Address of the node voting with this account
  * @property {string} stake The stake, in difs, delegated to this vote account
  * @property {string} commission A 32-bit integer used as a fraction (commission/0xFFFFFFFF) for rewards payout
  */
 type VoteAccountInfo = {
-  votePubkey: string,
-  nodePubkey: string,
+  voteBvmAddr: string,
+  nodeBvmAddr: string,
   stake: number,
   commission: number,
 };
@@ -736,9 +736,9 @@ const FetchRoundLeader = jsonRpcResult('string');
 const GetClusterNodes = jsonRpcResult(
   struct.list([
     struct({
-      pubkey: 'string',
-      gossip: 'string',
-      tpu: struct.union(['null', 'string']),
+      bvmaddr: 'string',
+      kingnodeip: 'string',
+      txProcessIp: struct.union(['null', 'string']),
       rpc: struct.union(['null', 'string']),
     }),
   ]),
@@ -750,8 +750,8 @@ const GetClusterNodes_015 = jsonRpcResult(
   struct.list([
     struct({
       id: 'string',
-      gossip: 'string',
-      tpu: struct.union(['null', 'string']),
+      kingnodeip: 'string',
+      txProcessIp: struct.union(['null', 'string']),
       rpc: struct.union(['null', 'string']),
     }),
   ]),
@@ -763,8 +763,8 @@ const GetClusterNodes_015 = jsonRpcResult(
 const GetEpochVoteAccounts = jsonRpcResult(
   struct.list([
     struct({
-      votePubkey: 'string',
-      nodePubkey: 'string',
+      voteBvmAddr: 'string',
+      nodeBvmAddr: 'string',
       stake: 'number',
       commission: 'number',
     }),
@@ -1055,9 +1055,9 @@ function sha3(data, bits) {
 }
 
 /**
- * Calculate public key from private key
+ * Calculate bvm address from private key
  * @param {Buffer} privateKey A private key must be 256 bits wide
- * @return {Buffer} public key
+ * @return {Buffer} bvm address
  */
 function privateKeyToPublicKey(privateKey) {
     if (encryptType === 0) {
@@ -1070,8 +1070,8 @@ function privateKeyToPublicKey(privateKey) {
 }
 
 /**
- * Calculate address from public key
- * @param {Buffer} publicKey public key
+ * Calculate address from bvm address
+ * @param {Buffer} publicKey bvm address
  * @param {bool} sanitize whether to sanitize publicKey
  * @return {Buffer} address
  */
@@ -1123,12 +1123,12 @@ function setLength(msg, length, right) {
 }
 
 /**
- * Recover public key from (v, r, s)
+ * Recover bvm address from (v, r, s)
  * @param {String} msgHash message hash
  * @param {String} v v
  * @param {String} r r
  * @param {String} s s
- * @return {String} public key recovered from (v, r, s)
+ * @return {String} bvm address recovered from (v, r, s)
  */
 function ecrecover(msgHash, v, r, s) {
     let signature = Buffer.concat([setLength(r, 32), setLength(s, 32)], 64);
@@ -1261,7 +1261,7 @@ export type TxnErr = {|
 /**
  * @ignore
  */
-type BlockhashAndFeeCalculator = [Blockhash, FeeCalculator]; // This type exists to workaround an esdoc parse error
+type BlockhashAndGasCounter = [Blockhash, GasCounter]; // This type exists to workaround an esdoc parse error
 
 /**
  * A connection to a fullnode JSON RPC endpoint
@@ -1323,7 +1323,7 @@ export class Connection {
   }
 
   /**
-   * Fetch the balance for the specified public key
+   * Fetch the balance for the specified bvm address
    */
   async fetchAccountBalance(pubKey: BvmAddr): Promise<number> {
     const unsafeRes = await this._rpcReq('getDif', [
@@ -1350,7 +1350,7 @@ export class Connection {
   }
 
   /**
-   * Fetch all the account info for the specified public key
+   * Fetch all the account info for the specified bvm address
    */
   async fetchAccountDetail(pubKey: BvmAddr): Promise<AccountDetail> {
     const unsafeRes = await this._rpcReq('getAccountInfo', [
@@ -1400,7 +1400,7 @@ export class Connection {
         throw new Error(res_015.error.message);
       }
       return res_015.result.map(node => {
-        node.pubkey = node.id;
+        node.bvmaddr = node.id;
         node.id = undefined;
         return node;
       });
@@ -1488,7 +1488,7 @@ export class Connection {
   /**
    * Fetch a recent blockhash from the cluster
    */
-  async fetchRecentBlockhash(): Promise<BlockhashAndFeeCalculator> {
+  async fetchRecentBlockhash(): Promise<BlockhashAndGasCounter> {
     // const unsafeRes = await this._rpcReq('getLatestBlockhash', []);
     const unsafeRes = await this._rpcReq('getLatestTransactionSeal', []);
 
@@ -1498,12 +1498,12 @@ export class Connection {
       if (res_015.error) {
         throw new Error(res_015.error.message);
       }
-      const [blockhash, feeCalculator] = res_015.result;
-      feeCalculator.targetSignaturesPerSlot = 42;
-      feeCalculator.targetDifsPerSignature =
-        feeCalculator.difsPerSignature;
+      const [blockhash, gasCounter] = res_015.result;
+      gasCounter.targetSignaturesPerSlot = 42;
+      gasCounter.targetDifsPerSignature =
+        gasCounter.difsPerSignature;
 
-      return [blockhash, feeCalculator];
+      return [blockhash, gasCounter];
     } catch (e) {
       // Not legacy format
     }
@@ -1593,7 +1593,7 @@ export class Connection {
       for (;;) {
         const [
           recentPackagehash,
-          //feeCalculator,
+          //gasCounter,
         ] = await this.fetchRecentBlockhash();
 
         if (this._blockhashInfo.recentPackagehash != recentPackagehash) {
@@ -1774,7 +1774,7 @@ export class Connection {
   /**
    * Register a callback to be invoked whenever the specified account changes
    *
-   * @param publickey Public key of the account to monitor
+   * @param publickey Bvm Address of the account to monitor
    * @param callback Function to invoke whenever the account is changed
    * @return subscription id
    */
@@ -1851,7 +1851,7 @@ export class Connection {
    * Register a callback to be invoked whenever accounts owned by the
    * specified controller change
    *
-   * @param controllerId Public key of the controller to monitor
+   * @param controllerId Bvm Address of the controller to monitor
    * @param callback Function to invoke whenever the account is changed
    * @return subscription id
    */
@@ -2101,8 +2101,8 @@ function getSenderAddress() {
 }
 
 /**
- * returns the public key of the sender
- * @return {Buffer} the public key of the sender
+ * returns the bvm address of the sender
+ * @return {Buffer} the bvm address of the sender
  */
 function getSenderPublicKey() {
     if (!this._senderPubKey || !this._senderPubKey.length) {

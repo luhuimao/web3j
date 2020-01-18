@@ -415,7 +415,7 @@ export class Asset {
   connection: Connection;
 
   /**
-   * The public key identifying this asset
+   * The bvm address identifying this asset
    */
   assetId: BvmAddr;
 
@@ -428,7 +428,7 @@ export class Asset {
    * Create a Token object attached to the specific asset
    *
    * @param connection The connection to use
-   * @param assetId Public key of the asset
+   * @param assetId Bvm Address of the asset
    * @param controllerId Optional asset controllerId, uses the system controllerId by default
    */
   constructor(
@@ -449,7 +449,7 @@ export class Asset {
    * @param assetSymbol Symbol for this asset
    * @param assetDecimals Location of the decimal place
    * @param controllerId Optional asset controllerId, uses the system controllerId by default
-   * @return Token object for the newly minted asset, Public key of the Asset BvmAcct holding the total supply of new assets
+   * @return Token object for the newly minted asset, Bvm Address of the Asset BvmAcct holding the total supply of new assets
    */
   static async createNewAsset(
     connection: Connection,
@@ -527,7 +527,7 @@ export class Asset {
    * @param ownerAccount User account that will own the new asset account
    * @param bvmAddrOfSourceAccount If not null, create a delegate account that when authorized
    *               may transfer assets from this `source` account
-   * @return Public key of the new empty asset account
+   * @return Bvm Address of the new empty asset account
    */
   async createNewAssetAccount(
     ownerAccount: BvmAcct,
@@ -601,7 +601,7 @@ export class Asset {
   /**
    * Retrieve account information
    *
-   * @param account Public key of the asset account
+   * @param account Bvm Address of the asset account
    */
   async fetchAccountDetail(account: BvmAddr): Promise<AssetAccountDetail> {
     const fetchAccountDetail = await this.connection.fetchAccountDetail(account);
@@ -670,7 +670,7 @@ export class Asset {
    * Grant a third-party permission to transfer up the specified number of assets from an account
    *
    * @param ownerAccount Owner of the source asset account
-   * @param publickeyOfAssetAccount Public key of the asset account
+   * @param publickeyOfAssetAccount Bvm Address of the asset account
    * @param publickeyOfDelegateAccount Token account authorized to perform a transfer assets from the source account
    * @param amountAsset Maximum number of assets the delegate may transfer
    */
@@ -693,7 +693,7 @@ export class Asset {
    * Remove approval for the transfer of any remaining assets
    *
    * @param ownerAccount Owner of the source asset account
-   * @param publickeyOfAssetAccount Public key of the asset account
+   * @param publickeyOfAssetAccount Bvm Address of the asset account
    * @param publickeyOfDelegateAccount Token account to revoke authorization from
    */
   unauthorize(
@@ -708,7 +708,7 @@ export class Asset {
    * Assign a new owner to the account
    *
    * @param ownerAccount Owner of the asset account
-   * @param publickeyOfAssetAccount Public key of the asset account
+   * @param publickeyOfAssetAccount Bvm Address of the asset account
    * @param publickeyOfNewOwner New owner of the asset account
    */
   async setNewOwnerToAssetAccount(
@@ -781,7 +781,7 @@ export class Asset {
    * Construct an Approve instruction
    *
    * @param owner Owner of the source asset account
-   * @param account Public key of the asset account
+   * @param account Bvm Address of the asset account
    * @param delegate Token account authorized to perform a transfer assets from the source account
    * @param amount Maximum number of assets the delegate may transfer
    */
@@ -820,7 +820,7 @@ export class Asset {
    * Construct an Revoke instruction
    *
    * @param owner Owner of the source asset account
-   * @param account Public key of the asset account
+   * @param account Bvm Address of the asset account
    * @param delegate Token account authorized to perform a transfer assets from the source account
    */
   revokeOperation(
@@ -835,7 +835,7 @@ export class Asset {
    * Construct a SetOwner instruction
    *
    * @param owner Owner of the asset account
-   * @param account Public key of the asset account
+   * @param account Bvm Address of the asset account
    * @param newOwner New owner of the asset account
    */
   setOwnerOperation(

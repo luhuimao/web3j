@@ -147,7 +147,7 @@ function test_deployed(artifact_path){
  */
 export class NativeControllerLoader {
   /**
-   * Public key that identifies the NativeControllerLoader
+   * Bvm Address that identifies the NativeControllerLoader
    */
   static get controllerId(): BvmAddr {
     return new BvmAddr('NativeLoader1111111111111111111111111111111');

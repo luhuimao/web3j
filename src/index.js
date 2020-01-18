@@ -13,7 +13,6 @@ export {launchThenAcknowledgeTx} from './launch-then-acknowledge-tx';
 export {
   launchThenAcknowledgeNativeTxn,
 } from './launch-then-acknowledge-original-tx';
-export {testnetChannelEndpoint} from './testnet';
 export {RpcCall} from './rpc-call';
 export {RpcParameter} from './rpc-parameter';
 export {PreCondition} from './preconditions';

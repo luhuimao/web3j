@@ -108,12 +108,12 @@ class Condition {
 
 
 /**
- * @typedef {Object} FeeCalculator
+ * @typedef {Object} GasCounter
  * @property {number} difsPerSignature difs Cost in difs to validate a signature
  * @property {number} targetDifsPerSignature
  * @property {number} targetSignaturesPerSlot
  */
-export type FeeCalculator = {
+export type GasCounter = {
   difsPerSignature: number,
   targetSignaturesPerSlot: number,
   targetDifsPerSignature: number,

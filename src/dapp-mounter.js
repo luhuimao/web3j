@@ -158,7 +158,7 @@ export class ControllerLoader {
    * @param connection The connection to use
    * @param payer System account that pays to load the controller
    * @param controller BvmAcct to load the controller into
-   * @param controllerId Public key that identifies the loader
+   * @param controllerId Bvm Address that identifies the loader
    * @param data controller octets
    */
   static async load(

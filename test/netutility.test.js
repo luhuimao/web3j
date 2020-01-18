@@ -135,9 +135,9 @@ test('get cluster nodes', async () => {
       error: null,
       result: [
         {
-          pubkey: '11111111111111111111111111111111',
-          gossip: '127.0.0.0:1234',
-          tpu: '127.0.0.0:1235',
+          bvmaddr: '11111111111111111111111111111111',
+          kingnodeip: '127.0.0.0:1234',
+          txProcessIp: '127.0.0.0:1235',
           rpc: null,
         },
       ],
@@ -147,9 +147,9 @@ test('get cluster nodes', async () => {
   const clusterNodes = await connection.fetchClusterNodes();
   if (mockRpcEnabled) {
     expect(clusterNodes).toHaveLength(1);
-    expect(clusterNodes[0].pubkey).toBe('11111111111111111111111111111111');
-    expect(typeof clusterNodes[0].gossip).toBe('string');
-    expect(typeof clusterNodes[0].tpu).toBe('string');
+    expect(clusterNodes[0].bvmaddr).toBe('11111111111111111111111111111111');
+    expect(typeof clusterNodes[0].kingnodeip).toBe('string');
+    expect(typeof clusterNodes[0].txProcessIp).toBe('string');
     expect(clusterNodes[0].rpc).toBeNull();
   } else {
     // There should be at least one node (the node that we're talking to)
@@ -245,10 +245,10 @@ test('get recent blockhash', async () => {
 
   const [
     recentPackagehash,
-    feeCalculator,
+    gasCounter,
   ] = await connection.fetchRecentBlockhash();
   expect(recentPackagehash.length).toBeGreaterThanOrEqual(43);
-  expect(feeCalculator.difsPerSignature).toBeGreaterThanOrEqual(0);
+  expect(gasCounter.difsPerSignature).toBeGreaterThanOrEqual(0);
 });
 
 test('request airdrop', async () => {

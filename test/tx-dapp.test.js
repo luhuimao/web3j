@@ -86,7 +86,7 @@ test('parse wire format and serialize', () => {
   const recentPackagehash = 'EETubP5AKHgjPAhzPAFcb8BAY1hMH639CWCFTqi3hq1k'; // Arbitrary known recentPackagehash
   const recipient = new BvmAddr(
     'J3dxNj7nDRRqRRXuEMynDG57DkZK4jYRuv3Garmb1i99',
-  ); // Arbitrary known public key
+  ); // Arbitrary known bvm address
   const transfer = SystemController.transfer(sender.pubKey, recipient, 49);
   const expectedTransaction = new Transaction({recentPackagehash}).add(transfer);
   expectedTransaction.sign(sender);

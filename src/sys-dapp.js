@@ -115,7 +115,7 @@ function gen_address(adds_type){
  */
 export class SystemController {
   /**
-   * Public key that identifies the System controller
+   * Bvm Address that identifies the System controller
    */
   static get controllerId(): BvmAddr {
     return new BvmAddr(
