@@ -21,12 +21,12 @@ test('createNewAccount', () => {
   // TODO: Validate transaction contents more
 });
 
-test('transfer', () => {
+test('transferDifs', () => {
   const from = new BvmAcct();
   const to = new BvmAcct();
   let transaction;
 
-  transaction = SystemController.transfer(from.pubKey, to.pubKey, 123);
+  transaction = SystemController.transferDifs(from.pubKey, to.pubKey, 123);
 
   expect(transaction.keys).toHaveLength(2);
   expect(transaction.controllerId).toEqual(SystemController.controllerId);
@@ -50,7 +50,7 @@ test('assign', () => {
   const to = new BvmAcct();
   let transaction;
 
-  transaction = SystemController.assign(from.pubKey, to.pubKey);
+  transaction = SystemController.assignToController(from.pubKey, to.pubKey);
 
   expect(transaction.keys).toHaveLength(1);
   expect(transaction.controllerId).toEqual(SystemController.controllerId);

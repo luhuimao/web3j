@@ -746,7 +746,7 @@ const GetClusterNodes = jsonRpcResult(
 /**
  * @ignore
  */
-const GetClusterNodes_015 = jsonRpcResult(
+const GetClusterNodes_tmp = jsonRpcResult(
   struct.list([
     struct({
       id: 'string',
@@ -1228,7 +1228,7 @@ function encodeTxData(fcn, types, params) {
  * Callback function for controller account change notifications
  */
 export type ControllerAccountChangeCallback = (
-  keyedAccountInfo: KeyedAccountDetail,
+  keyedAccountDetail: KeyedAccountDetail,
 ) => void;
 
 /**
@@ -1392,14 +1392,13 @@ export class Connection {
   async fetchClusterNodes(): Promise<Array<NodeInfo>> {
     const unsafeRes = await this._rpcReq('getClusterNodes', []);
 
-    // Legacy v0.15 response.  TODO: Remove in August 2019
     try {
-      const res_015 = GetClusterNodes_015(unsafeRes);
-      if (res_015.error) {
-        console.log('no', res_015.error);
-        throw new Error(res_015.error.message);
+      const res_tmp = GetClusterNodes_tmp(unsafeRes);
+      if (res_tmp.error) {
+        console.log('no', res_tmp.error);
+        throw new Error(res_tmp.error.message);
       }
-      return res_015.result.map(node => {
+      return res_tmp.result.map(node => {
         node.bvmaddr = node.id;
         node.id = undefined;
         return node;
@@ -1489,16 +1488,14 @@ export class Connection {
    * Fetch a recent blockhash from the cluster
    */
   async fetchRecentBlockhash(): Promise<BlockhashAndGasCounter> {
-    // const unsafeRes = await this._rpcReq('getLatestBlockhash', []);
     const unsafeRes = await this._rpcReq('getLatestTransactionSeal', []);
 
-    // Legacy v0.15 response.  TODO: Remove in August 2019
     try {
-      const res_015 = GetRecentBlockhash_015(unsafeRes);
-      if (res_015.error) {
-        throw new Error(res_015.error.message);
+      const res_tmp = GetRecentBlockhash_015(unsafeRes);
+      if (res_tmp.error) {
+        throw new Error(res_tmp.error.message);
       }
-      const [blockhash, gasCounter] = res_015.result;
+      const [blockhash, gasCounter] = res_tmp.result;
       gasCounter.targetSignaturesPerSlot = 42;
       gasCounter.targetDifsPerSignature =
         gasCounter.difsPerSignature;
@@ -1570,7 +1567,7 @@ export class Connection {
         this._blockhashInfo.seconds < seconds + 30
       ) {
         transaction.recentPackagehash = this._blockhashInfo.recentPackagehash;
-        transaction.sign(...signers);
+        transaction.signTx(...signers);
         if (!transaction.signature) {
           throw new Error('!signature'); // should never happen
         }

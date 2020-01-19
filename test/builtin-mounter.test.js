@@ -28,7 +28,7 @@ test('load native controller', async () => {
     from,
     'bitconch_noop_program',
   );
-  const transaction = new Transaction().add({
+  const transaction = new Transaction().addOperations({
     keys: [{pubkey: from.pubKey, isSigner: true, isDebitable: true}],
     controllerId,
   });

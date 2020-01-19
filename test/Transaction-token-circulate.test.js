@@ -71,7 +71,7 @@ test('transaction-payer', async () => {
     },
   ]);
 
-  const transaction = SystemController.transfer(
+  const transaction = SystemController.transferDifs(
     accountFrom.pubKey,
     accountTo.pubKey,
     10,

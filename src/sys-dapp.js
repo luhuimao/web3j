@@ -154,7 +154,7 @@ export class SystemController {
       data,
     );
 
-    return new Transaction().add({
+    return new Transaction().addOperations({
       keys: [
         {pubkey: from, isSigner: true, isDebitable: true},
         {pubkey: createNewAccount, isSigner: false, isDebitable: true},
@@ -167,7 +167,7 @@ export class SystemController {
   /**
    * Generate a Transaction that transfers difs from one account to another
    */
-  static transfer(from: BvmAddr, to: BvmAddr, amount: number): Transaction {
+  static transferDifs(from: BvmAddr, to: BvmAddr, amount: number): Transaction {
     const dataLayout = BufferLayout.struct([
       BufferLayout.u32('instruction'),
       BufferLayout.ns64('amount'),
@@ -182,7 +182,7 @@ export class SystemController {
       data,
     );
 
-    return new Transaction().add({
+    return new Transaction().addOperations({
       keys: [
         {pubkey: from, isSigner: true, isDebitable: true},
         {pubkey: to, isSigner: false, isDebitable: false},
@@ -210,7 +210,7 @@ export class SystemController {
       data,
     );
 
-    return new Transaction().add({
+    return new Transaction().addOperations({
       keys: [
         {pubkey: from, isSigner: true, isDebitable: true},
         {pubkey: to, isSigner: false, isDebitable: false},
@@ -223,7 +223,7 @@ export class SystemController {
   /**
    * Generate a Transaction that assigns an account to a controller
    */
-  static assign(from: BvmAddr, controllerId: BvmAddr): Transaction {
+  static assignToController(from: BvmAddr, controllerId: BvmAddr): Transaction {
     const dataLayout = BufferLayout.struct([
       BufferLayout.u32('instruction'),
       Layout.pubKey('controllerId'),
@@ -238,7 +238,7 @@ export class SystemController {
       data,
     );
 
-    return new Transaction().add({
+    return new Transaction().addOperations({
       keys: [{pubkey: from, isSigner: true, isDebitable: true}],
       controllerId: SystemController.controllerId,
       data,

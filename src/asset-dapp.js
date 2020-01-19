@@ -500,7 +500,7 @@ export class Asset {
     );
     await launchThenAcknowledgeTx(connection, transaction, ownerOfAsset);
 
-    transaction = new Transaction().add({
+    transaction = new Transaction().addOperations({
       keys: [
         {pubkey: assetAccount.pubKey, isSigner: true, isDebitable: false},
         {pubkey: publickeyOfStoreAssetAccount, isSigner: false, isDebitable: true},
@@ -563,7 +563,7 @@ export class Asset {
     if (bvmAddrOfSourceAccount) {
       keys.push({pubkey: bvmAddrOfSourceAccount, isSigner: false, isDebitable: false});
     }
-    transaction = new Transaction().add({
+    transaction = new Transaction().addOperations({
       keys,
       controllerId: this.controllerId,
       data,
@@ -654,7 +654,7 @@ export class Asset {
   ): Promise<?TxnSignature> {
     return await launchThenAcknowledgeTx(
       this.connection,
-      new Transaction().add(
+      new Transaction().addOperations(
         await this.transferOperation(
           owner.pubKey,
           source,
@@ -682,7 +682,7 @@ export class Asset {
   ): Promise<void> {
     await launchThenAcknowledgeTx(
       this.connection,
-      new Transaction().add(
+      new Transaction().addOperations(
         this.approveOperation(ownerAccount.pubKey, publickeyOfAssetAccount, publickeyOfDelegateAccount, amountAsset),
       ),
       ownerAccount,
@@ -718,7 +718,7 @@ export class Asset {
   ): Promise<void> {
     await launchThenAcknowledgeTx(
       this.connection,
-      new Transaction().add(
+      new Transaction().addOperations(
         this.setOwnerOperation(ownerAccount.pubKey, publickeyOfAssetAccount, publickeyOfNewOwner),
       ),
       ownerAccount,

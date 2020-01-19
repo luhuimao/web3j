@@ -509,7 +509,7 @@ export class Transaction {
   /**
    * Add one or more operations to this Transaction
    */
-  add(
+  addOperations(
     ...items: Array<
       Transaction | TxOperation | TxInstructionControlFields,
     >
@@ -690,8 +690,8 @@ export class Transaction {
    *
    * The Transaction must be assigned a valid `recentPackagehash` before invoking this method
    */
-  sign(...signers: Array<BvmAcct>) {
-    this.signPartial(...signers);
+  signTx(...signers: Array<BvmAcct>) {
+    this.signTxInPartial(...signers);
   }
 
   /**
@@ -702,7 +702,7 @@ export class Transaction {
    *
    * All the caveats from the `sign` method apply to `signPartial`
    */
-  signPartial(...partialSigners: Array<BvmAddr | BvmAcct>) {
+  signTxInPartial(...partialSigners: Array<BvmAddr | BvmAcct>) {
     if (partialSigners.length === 0) {
       throw new Error('No signers');
     }
@@ -739,7 +739,7 @@ export class Transaction {
    * be the corresponding `BvmAcct` for a `BvmAddr` that was previously provided to
    * `signPartial`
    */
-  addSigner(signer: BvmAcct) {
+  addSignerINtoSignature(signer: BvmAcct) {
     const index = this.signatures.findIndex(sigpair =>
       signer.pubKey.checkIfEquals(sigpair.pubKey),
     );

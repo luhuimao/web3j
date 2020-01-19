@@ -10,19 +10,19 @@ test('signPartial', () => {
   const account1 = new BvmAcct();
   const account2 = new BvmAcct();
   const recentPackagehash = account1.pubKey.converseToBase58(); // Fake recentPackagehash
-  const transfer = SystemController.transfer(
+  const transfer = SystemController.transferDifs(
     account1.pubKey,
     account2.pubKey,
     123,
   );
 
-  const transaction = new Transaction({recentPackagehash}).add(transfer);
-  transaction.sign(account1, account2);
+  const transaction = new Transaction({recentPackagehash}).addOperations(transfer);
+  transaction.signTx(account1, account2);
 
-  const partialTransaction = new Transaction({recentPackagehash}).add(transfer);
-  partialTransaction.signPartial(account1, account2.pubKey);
+  const partialTransaction = new Transaction({recentPackagehash}).addOperations(transfer);
+  partialTransaction.signTxInPartial(account1, account2.pubKey);
   expect(partialTransaction.signatures[1].signature).toBeNull();
-  partialTransaction.addSigner(account2);
+  partialTransaction.addSignerINtoSignature(account2);
 
   expect(partialTransaction).toEqual(transaction);
 });
@@ -31,27 +31,27 @@ test('transfer signatures', () => {
   const account1 = new BvmAcct();
   const account2 = new BvmAcct();
   const recentPackagehash = account1.pubKey.converseToBase58(); // Fake recentPackagehash
-  const transfer1 = SystemController.transfer(
+  const transfer1 = SystemController.transferDifs(
     account1.pubKey,
     account2.pubKey,
     123,
   );
-  const transfer2 = SystemController.transfer(
+  const transfer2 = SystemController.transferDifs(
     account2.pubKey,
     account1.pubKey,
     123,
   );
 
-  const orgTransaction = new Transaction({recentPackagehash}).add(
+  const orgTransaction = new Transaction({recentPackagehash}).addOperations(
     transfer1,
     transfer2,
   );
-  orgTransaction.sign(account1, account2);
+  orgTransaction.signTx(account1, account2);
 
   const newTransaction = new Transaction({
     recentPackagehash: orgTransaction.recentPackagehash,
     signatures: orgTransaction.signatures,
-  }).add(transfer1, transfer2);
+  }).addOperations(transfer1, transfer2);
 
   expect(newTransaction).toEqual(orgTransaction);
 });
@@ -60,22 +60,22 @@ test('dedup signatures', () => {
   const account1 = new BvmAcct();
   const account2 = new BvmAcct();
   const recentPackagehash = account1.pubKey.converseToBase58(); // Fake recentPackagehash
-  const transfer1 = SystemController.transfer(
+  const transfer1 = SystemController.transferDifs(
     account1.pubKey,
     account2.pubKey,
     123,
   );
-  const transfer2 = SystemController.transfer(
+  const transfer2 = SystemController.transferDifs(
     account1.pubKey,
     account2.pubKey,
     123,
   );
 
-  const orgTransaction = new Transaction({recentPackagehash}).add(
+  const orgTransaction = new Transaction({recentPackagehash}).addOperations(
     transfer1,
     transfer2,
   );
-  orgTransaction.sign(account1);
+  orgTransaction.signTx(account1);
 });
 
 test('parse wire format and serialize', () => {
@@ -87,9 +87,9 @@ test('parse wire format and serialize', () => {
   const recipient = new BvmAddr(
     'J3dxNj7nDRRqRRXuEMynDG57DkZK4jYRuv3Garmb1i99',
   ); // Arbitrary known bvm address
-  const transfer = SystemController.transfer(sender.pubKey, recipient, 49);
-  const expectedTransaction = new Transaction({recentPackagehash}).add(transfer);
-  expectedTransaction.sign(sender);
+  const transfer = SystemController.transferDifs(sender.pubKey, recipient, 49);
+  const expectedTransaction = new Transaction({recentPackagehash}).addOperations(transfer);
+  expectedTransaction.signTx(sender);
 
   const wireTransaction = Buffer.from([
     1,

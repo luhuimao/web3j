@@ -27,7 +27,7 @@ test('load BPF C controller', async () => {
   const from = await newAccountWithDif(connection, 1024);
   const data = await fs.readFile('test/fixtures/noop-c/noop.so');
   const controllerId = await BpfControllerLoader.load(connection, from, data);
-  const transaction = new Transaction().add({
+  const transaction = new Transaction().addOperations({
     keys: [{pubkey: from.pubKey, isSigner: true, isDebitable: true}],
     controllerId,
   });
@@ -46,7 +46,7 @@ test('load BPF Rust controller', async () => {
     'test/fixtures/noop-rust/solana_bpf_rust_noop.so',
   );
   const controllerId = await BpfControllerLoader.load(connection, from, data);
-  const transaction = new Transaction().add({
+  const transaction = new Transaction().addOperations({
     keys: [{pubkey: from.pubKey, isSigner: true, isDebitable: true}],
     controllerId,
   });

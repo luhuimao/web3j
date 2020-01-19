@@ -529,7 +529,7 @@ test('transaction', async () => {
     },
   ]);
 
-  const transaction = SystemController.transfer(
+  const transaction = SystemController.transferDifs(
     accountFrom.pubKey,
     accountTo.pubKey,
     10,
@@ -627,12 +627,12 @@ test('multi-instruction transaction', async () => {
 
   // 1. Move(accountFrom, accountTo)
   // 2. Move(accountTo, accountFrom)
-  const transaction = SystemController.transfer(
+  const transaction = SystemController.transferDifs(
     accountFrom.pubKey,
     accountTo.pubKey,
     100,
-  ).add(
-    SystemController.transfer(accountTo.pubKey, accountFrom.pubKey, 100),
+  ).addOperations(
+    SystemController.transferDifs(accountTo.pubKey, accountFrom.pubKey, 100),
   );
   const signature = await connection.sendTxn(
     transaction,

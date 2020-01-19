@@ -208,7 +208,7 @@ export class ControllerLoader {
         data,
       );
 
-      const transaction = new Transaction().add({
+      const transaction = new Transaction().addOperations({
         keys: [{pubkey: controller.pubKey, isSigner: true, isDebitable: true}],
         controllerId,
         data,
@@ -247,7 +247,7 @@ export class ControllerLoader {
         data,
       );
 
-      const transaction = new Transaction().add({
+      const transaction = new Transaction().addOperations({
         keys: [{pubkey: controller.pubKey, isSigner: true, isDebitable: true}],
         controllerId,
         data,

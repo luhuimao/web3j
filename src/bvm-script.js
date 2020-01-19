@@ -295,7 +295,7 @@ export class BudgetController {
           this.controllerId,
         );
 
-        return transaction.add({
+        return transaction.addOperations({
           keys: [
             {pubkey: to, isSigner: false, isDebitable: false},
             {pubkey: controller, isSigner: false, isDebitable: true},
@@ -332,7 +332,7 @@ export class BudgetController {
           this.controllerId,
         );
 
-        return transaction.add({
+        return transaction.addOperations({
           keys: [{pubkey: controller, isSigner: false, isDebitable: true}],
           controllerId: this.controllerId,
           data: trimmedData,
@@ -366,7 +366,7 @@ export class BudgetController {
           this.controllerId,
         );
 
-        return transaction.add({
+        return transaction.addOperations({
           keys: [{pubkey: controller, isSigner: false, isDebitable: true}],
           controllerId: this.controllerId,
           data: trimmedData,
@@ -425,7 +425,7 @@ export class BudgetController {
       this.controllerId,
     );
 
-    return transaction.add({
+    return transaction.addOperations({
       keys: [{pubkey: controller, isSigner: false, isDebitable: true}],
       controllerId: this.controllerId,
       data: trimmedData,
@@ -448,7 +448,7 @@ export class BudgetController {
     data.writeUInt32LE(1, 0); // ApplyTimestamp instruction
     whenData.copy(data, 4);
 
-    return new Transaction().add({
+    return new Transaction().addOperations({
       keys: [
         {pubkey: from, isSigner: true, isDebitable: true},
         {pubkey: controller, isSigner: false, isDebitable: true},
@@ -478,7 +478,7 @@ export class BudgetController {
       data,
     );
 
-    return new Transaction().add({
+    return new Transaction().addOperations({
       keys: [
         {pubkey: from, isSigner: true, isDebitable: true},
         {pubkey: controller, isSigner: false, isDebitable: true},
